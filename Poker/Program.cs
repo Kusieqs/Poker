@@ -4,12 +4,16 @@
     {
         // choosing how many players do you want
         int players = HowManyPlayers();
+        Console.Clear();
 
         // Choosing how many monets do you want
         int monets = HowManyMonets();
+        Console.Clear();
 
-        // true - Five-card ---  false - Texas holdem
+        // FALSE - Five-card
+        // TRUE - Texas holdem
         bool mode = WhichMode();
+        Console.Clear();
     }
 
     private static int HowManyPlayers() 
@@ -63,7 +67,7 @@
                 Console.Write("Monets: ");
                 int mode = int.Parse(Console.ReadLine());
                 if (mode > 0 && mode < 3)
-                    return bool.Parse((mode-1).ToString());
+                    return mode == 1;
                 else
                     throw new FormatException();
             }
