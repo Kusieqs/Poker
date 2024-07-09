@@ -10,7 +10,7 @@ namespace Poker
     {
         public static List<Card> mainDeck = new List<Card>();
         public static Stack<Card> gameDeck = new Stack<Card>();
-        public int Monets { get; private set; }
+        public int Monets { get; set; }
         public bool IsPlayer { get; private set; }
 
         private Card[] deck;
@@ -21,8 +21,11 @@ namespace Poker
             IsPlayer = player;
             this.deck = new Card[deck];
         }
-
-
+        public void RaiseMoney(ref int bank, int amount)
+        {
+            bank += amount;
+            Monets -= amount;
+        } // Raise money to bank and also taking from pocket
         public static void CratingDeck()
         {
             var names = new[] { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };

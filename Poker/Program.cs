@@ -19,7 +19,7 @@ internal class Program
 
 
         if (mode)
-            TexasHoldem.StartGame(players, monets);
+            TexasHoldem.Game(players, monets);
     }
 
     private static int HowManyPlayers() 
@@ -83,10 +83,11 @@ internal class Program
             }
         }
     } // Choosing which game do you want to play
-    private static void ExceptionString()
+    public static void ExceptionString(string exception = "")
     {
+        Console.WriteLine();
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("Wrong number or format");
+        Console.WriteLine(exception == "" ? "Wrong number or format" : exception);
         Console.ResetColor();
         Console.ReadKey();
         Console.Clear();
