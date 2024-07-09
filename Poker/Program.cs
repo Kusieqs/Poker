@@ -1,4 +1,6 @@
-﻿internal class Program
+﻿using Poker;
+
+internal class Program
 {
     private static void Main(string[] args)
     {
@@ -14,6 +16,10 @@
         // TRUE - Texas holdem
         bool mode = WhichMode();
         Console.Clear();
+
+
+        if (mode)
+            TexasHoldem.StartGame(players, monets);
     }
 
     private static int HowManyPlayers() 
