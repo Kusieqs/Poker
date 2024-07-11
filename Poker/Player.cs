@@ -12,21 +12,34 @@ namespace Poker
         public static Stack<Card> gameDeck = new Stack<Card>();
         public int Monets { get; set; }
         public bool IsPlayer { get; private set; }
-
-        private Card[] deck;
+        public Card[] Deck { get; set; }
 
         public Player(int monets, bool player,  int deck) 
         {
             Monets = monets;
             IsPlayer = player;
-            this.deck = new Card[deck];
+            Deck = new Card[deck];
         }
         public void RaiseMoney(ref int bank, int amount)
         {
             bank += amount;
             Monets -= amount;
         } // Raise money to bank and also taking from pocket
-        public static void CratingDeck()
+        public void RaiseCard()
+        {
+            for(int i = 0; i < Deck.Length; i++)
+            {
+                Deck[i] = gameDeck.Pop();
+            }
+        } // Raising card to deck
+        public void ShowDeck()
+        {
+            for (int i = 0; i < Deck.Length;i++)
+            {
+                Console.WriteLine(Deck[i].DrawCard());
+            }
+        } // Showing our deck
+        public static void CreatingDeck()
         {
             var names = new[] { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
             var suits = Enum.GetValues(typeof(Suit));
@@ -67,9 +80,9 @@ namespace Poker
             this.color = color;
         }
 
-        public void DrawCard()
+        public string DrawCard()
         {
-            Console.WriteLine($"{name} {suit} {color}");
+            return $"{name} {suit} {color}";
         } // draw card
     }
 
