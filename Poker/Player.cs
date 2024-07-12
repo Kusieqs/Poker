@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,19 +42,15 @@ namespace Poker
         } // Showing our deck
         public static void CreatingDeck()
         {
-            var names = new[] { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
             var suits = Enum.GetValues(typeof(Suit));
-            var colors = Enum.GetValues(typeof(Color));
+            var ranks = Enum.GetValues(typeof(Rank));
 
-            foreach (var name in names)
+            foreach (var rank in ranks)
             {
                 foreach (var suit in suits)
                 {
-                    foreach (var color in colors)
-                    {
-                        Card card = new Card(name, (Suit)suit, (Color)color);
-                        mainDeck.Add(card);
-                    }
+                    Card card = new Card((Suit)suit, (Rank)rank);
+                    mainDeck.Add(card);
                 }
             }
         } // Creating main deck
@@ -69,20 +66,18 @@ namespace Poker
     }
 
     public class Card
-    {
-        public string name { get; set; }
-        public Suit suit { get; set; }
-        public Color color { get; set; }
-        public Card(string name, Suit suit, Color color)
+    { 
+        public Suit Suit { get; set; }
+        public Rank Rank { get; set; }
+        public Card(Suit suit, Rank rank)
         {
-            this.name = name;
-            this.suit = suit;
-            this.color = color;
+            Suit = suit;
+            Rank = rank;
         }
 
         public string DrawCard()
         {
-            return $"{name} {suit} {color}";
+            return $"{Rank} {Suit}";
         } // draw card
     }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
@@ -96,6 +97,12 @@ namespace Poker
                     */
                 }
 
+                Console.Clear();
+                HandRank handRank = PokerHandEvaluator.CheckHand(listOfPlayers.Where(x => x.IsPlayer).First().Deck, cardsOnTable);
+
+                listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault().ShowDeck();
+                Console.WriteLine(cardsOnDeck);
+                Console.WriteLine(handRank.ToString());
                 Console.ReadKey();
 
             } while (true);
