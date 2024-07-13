@@ -11,15 +11,18 @@ namespace Poker
     {
         public static List<Card> mainDeck = new List<Card>();
         public static Stack<Card> gameDeck = new Stack<Card>();
+
+        public string Name { get; set; }
         public int Monets { get; set; }
         public bool IsPlayer { get; private set; }
         public Card[] Deck { get; set; }
 
-        public Player(int monets, bool player,  int deck) 
+        public Player(int monets, bool player,  int deck, string name) 
         {
             Monets = monets;
             IsPlayer = player;
             Deck = new Card[deck];
+            Name = name;
         }
         public void RaiseMoney(ref int bank, int amount)
         {
@@ -35,6 +38,7 @@ namespace Poker
         } // Raising card to deck
         public void ShowDeck()
         {
+            Console.WriteLine("Your deck: ");
             for (int i = 0; i < Deck.Length;i++)
             {
                 Console.WriteLine(Deck[i].DrawCard());

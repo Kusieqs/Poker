@@ -19,7 +19,7 @@ internal class Program
 
 
         if (mode)
-            TexasHoldem.Game(players, monets);
+            TexasHoldem.Game(players, monets,"MAIN PLAYER");
     }
 
     private static int HowManyPlayers() 

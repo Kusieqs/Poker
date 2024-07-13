@@ -36,4 +36,10 @@
         StraightFlush,
         RoyalFlush
     }
+    public enum Move
+    {
+        Raise,
+        Fold,
+        Pass
+    }
 }

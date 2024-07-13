@@ -13,12 +13,12 @@ namespace Poker
     {
         public static List<Player> listOfPlayers = new List<Player>(); // list of players
         public static List<Card> cardsOnTable = new List<Card>();
-        public static void Game(int players, int monets)
+        public static void Game(int players, int monets, string name)
         {
             // adding new players to game
-            for(int i = 0; i < players; i++)
+            for (int i = 0; i < players; i++)
             {
-                Player player = new Player(monets, i == 0 ? true : false ,2);
+                Player player = new Player(monets, i == 0 ? true : false, 2, i == 0 ? name : $"Player {i}");
                 listOfPlayers.Add(player);
             }
 
@@ -47,25 +47,24 @@ namespace Poker
                 Player.CreatingDeck();
                 Player.Shuffle();
                 Console.Clear();
-                
+
                 //Dealing cards to decks
                 DealCards();
 
 
-                /*  Metoda ktora bedzie nam sprawdzac czy komputer chce grac dalej czy nie czy chce podbic czy czekac
-                 *  Metoda do podbicia/ czekania/ spasowania -> rozegranie gry przez komputer, Rozdanie 3 kart poczatkowych
-                 */
+                OptionsInGame(true);
+
                 string cardsOnDeck = "";
                 Card card;
                 Console.Clear();
 
                 // Showing your deck
                 Console.WriteLine("Your Deck\n");
-                listOfPlayers.Where(x=> x.IsPlayer).First().ShowDeck();
+                listOfPlayers.Where(x => x.IsPlayer).First().ShowDeck();
 
                 // Croupier deals 3 cards on the table
                 Console.WriteLine("\n\n\nCards putted by croupier\n");
-                for(int i = 0; i < 3;  i++)
+                for (int i = 0; i < 3; i++)
                 {
                     Thread.Sleep(400);
                     card = Player.gameDeck.Pop();
@@ -74,13 +73,11 @@ namespace Poker
                     Console.WriteLine(cardsOnDeck);
                 }
 
-                /*  Metoda ktora bedzie nam sprawdzac czy komputer chce grac dalej czy nie czy chce podbic czy czekac
-                *  Metoda do podbicia/ czekania/ spasowania -> rozegranie gry przez komputer, Rozdanie 3 kart poczatkowych
-                */
 
                 // Croupier deals 1 card on the table
-                for (int i = 0; i < 2; i ++)
+                for (int i = 0; i < 2; i++)
                 {
+                    OptionsInGame(true);
                     Console.Clear();
                     Console.WriteLine("Your Deck\n");
                     listOfPlayers.Where(x => x.IsPlayer).First().ShowDeck();
@@ -92,11 +89,9 @@ namespace Poker
                     cardsOnTable.Add(card);
                     Console.Write(cardsOnDeck);
 
-                    /*  Metoda ktora bedzie nam sprawdzac czy komputer chce grac dalej czy nie czy chce podbic czy czekac
-                    *  Metoda do podbicia/ czekania/ spasowania -> rozegranie gry przez komputer, Rozdanie 3 kart poczatkowych
-                    */
                 }
 
+                OptionsInGame(false);
                 Console.Clear();
                 HandRank handRank = PokerHandEvaluator.CheckHand(listOfPlayers.Where(x => x.IsPlayer).First().Deck, cardsOnTable);
 
@@ -167,11 +162,11 @@ namespace Poker
             {
                 player.RaiseCard();
 
-                
-                if(player.IsPlayer)
+
+                if (player.IsPlayer)
                 {
                     Console.WriteLine("Your deck\n");
-                    for(int j = 0; j < player.Deck.Length; j++)
+                    for (int j = 0; j < player.Deck.Length; j++)
                     {
                         Thread.Sleep(1300);
                         Console.WriteLine(player.Deck[j].DrawCard());
@@ -180,7 +175,7 @@ namespace Poker
                 }
                 else
                 {
-                    Console.Write($"Player {i}");
+                    Console.Write(player.Name);
                     Thread.Sleep(1300);
                     Console.WriteLine(" is ready!");
                     ++i;
@@ -189,6 +184,65 @@ namespace Poker
             Console.WriteLine("\n\nClick enter to continue");
             Console.ReadKey();
         } // Dealing 2 cards for each player
+
+        private static void OptionsInGame(bool x)
+        {
+            Console.Clear();
+            //SPRAWDZIC CZY KOMPUTER ALBO UZYTKOWNIK JEST W STANIE GRAC DALEJ ( RAIS / cHECK)
+            string whichOption = x == true ? "Wait" : "Check"; 
+            string options = $"\nOptions: 1 - Raise, 2 - {whichOption}, 3 - Pass \n\n";
+
+            listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault().ShowDeck();
+            Console.WriteLine(options);
+            var userMove = GetUserMoveAsync();
+            var computerMove = GetComputerMoveAsync();
+            Task.WhenAll(userMove, computerMove).Wait();
+        }
+
+        private static Task GetUserMoveAsync()
+        {
+            return Task.Run(async () =>
+            {
+                while(true)
+                {
+                    int userDecision;
+                    try
+                    {
+                        int.TryParse(Console.ReadLine(), out userDecision);
+
+                        if (userDecision < 1 || userDecision > 3)
+                            throw new FormatException();
+
+                        Move userMove = (Move)(userDecision - 1);
+
+                        // Przypisanie ostatniego tuchu
+                    }
+                    catch (Exception)
+                    {
+                        Program.ExceptionString();
+                    }
+                }
+            });
+        }
+
+        private static Task GetComputerMoveAsync()
+        {
+            return Task.Run(async () =>
+            {
+                // Wszytskie ruchy komputerow 
+                Random random = new Random();
+                await Task.Delay(random.Next(2000, 5000));
+                
+                // komputer ma wybrac jak najlepsza decyje jaka moze
+
+                Move computerMove = (Move)random.Next(0,3);
+
+                // przypisanie ostatniego ruchu
+                Console.WriteLine("Oddal");
+            });
+        }
+
+
 
     }
 }
