@@ -15,6 +15,7 @@ namespace Poker
         public string Name { get; set; }
         public int Monets { get; set; }
         public bool IsPlayer { get; private set; }
+        public Move LastMove { get; set; }
         public Card[] Deck { get; set; }
 
         public Player(int monets, bool player,  int deck, string name) 
@@ -24,6 +25,14 @@ namespace Poker
             Deck = new Card[deck];
             Name = name;
         }
+        public void ShowDeck()
+        {
+            Console.WriteLine("Your deck: ");
+            for (int i = 0; i < Deck.Length;i++)
+            {
+                Console.WriteLine(Deck[i].DrawCard());
+            }
+        } // Showing our deck
         public void RaiseMoney(ref int bank, int amount)
         {
             bank += amount;
@@ -36,14 +45,11 @@ namespace Poker
                 Deck[i] = gameDeck.Pop();
             }
         } // Raising card to deck
-        public void ShowDeck()
+        public string ChooseMoveForComputer()
         {
-            Console.WriteLine("Your deck: ");
-            for (int i = 0; i < Deck.Length;i++)
-            {
-                Console.WriteLine(Deck[i].DrawCard());
-            }
-        } // Showing our deck
+            // Wybranie najbardziej rozsadnej opcji, przypisanie jej do LastMove
+            return string.Empty;
+        }
         public static void CreatingDeck()
         {
             var suits = Enum.GetValues(typeof(Suit));
@@ -67,6 +73,7 @@ namespace Poker
                 gameDeck.Push(card);
             }
         } // Shuffle the deck
+
     }
 
     public class Card

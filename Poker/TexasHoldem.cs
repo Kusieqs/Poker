@@ -188,24 +188,31 @@ namespace Poker
         private static void OptionsInGame(bool x)
         {
             Console.Clear();
-            //SPRAWDZIC CZY KOMPUTER ALBO UZYTKOWNIK JEST W STANIE GRAC DALEJ ( RAIS / cHECK)
+
+            // Menu for player
             string whichOption = x == true ? "Wait" : "Check"; 
             string options = $"\nOptions: 1 - Raise, 2 - {whichOption}, 3 - Pass \n\n";
 
+            // Feature to show  deck
             listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault().ShowDeck();
             Console.WriteLine(options);
+
+            // Async methods 
             var userMove = GetUserMoveAsync();
             var computerMove = GetComputerMoveAsync();
             Task.WhenAll(userMove, computerMove).Wait();
+
+            // Take action of move
         }
 
         private static Task GetUserMoveAsync()
         {
-            return Task.Run(async () =>
+            return Task.Run(() =>
             {
-                while(true)
+                while (true)
                 {
                     int userDecision;
+
                     try
                     {
                         int.TryParse(Console.ReadLine(), out userDecision);
@@ -214,8 +221,7 @@ namespace Poker
                             throw new FormatException();
 
                         Move userMove = (Move)(userDecision - 1);
-
-                        // Przypisanie ostatniego tuchu
+                        listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault().LastMove = userMove;
                     }
                     catch (Exception)
                     {
@@ -224,21 +230,37 @@ namespace Poker
                 }
             });
         }
-
         private static Task GetComputerMoveAsync()
         {
             return Task.Run(async () =>
             {
-                // Wszytskie ruchy komputerow 
                 Random random = new Random();
-                await Task.Delay(random.Next(2000, 5000));
-                
-                // komputer ma wybrac jak najlepsza decyje jaka moze
+                bool[] playerCorrect = new bool[listOfPlayers.Count - 1];
 
-                Move computerMove = (Move)random.Next(0,3);
+                for(int i = 0; i < playerCorrect.Length; i++) 
+                {
+                    playerCorrect[i] = false;
+                }
 
-                // przypisanie ostatniego ruchu
-                Console.WriteLine("Oddal");
+                int whichPlayer = 0;
+                for (int i = 0; i < listOfPlayers.Count - 1; i++)
+                {
+                    while(true)
+                    {
+                        whichPlayer = random.Next(1, listOfPlayers.Count);
+                        if (playerCorrect[whichPlayer - 1] == true)
+                            continue;
+                        else
+                        {
+                            playerCorrect[whichPlayer-1] = true;
+                            break;
+                        }
+                    }
+                    await Task.Delay(random.Next(1000, 5000));
+
+                    string move = listOfPlayers[whichPlayer].ChooseMoveForComputer();
+                    Console.WriteLine($"{listOfPlayers[whichPlayer].Name} {move}");
+                }
             });
         }
 

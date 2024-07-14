@@ -4,6 +4,15 @@ internal class Program
 {
     private static void Main(string[] args)
     {
+        // Setting name for a main player
+        string name;
+        do
+        {
+            Console.Clear();
+            name = Console.ReadLine();
+        } while (string.IsNullOrEmpty(name) || name.Length > 25);
+
+
         // choosing how many players do you want
         int players = HowManyPlayers();
         Console.Clear();
@@ -19,7 +28,7 @@ internal class Program
 
 
         if (mode)
-            TexasHoldem.Game(players, monets,"MAIN PLAYER");
+            TexasHoldem.Game(players, monets, name);
     }
 
     private static int HowManyPlayers() 
