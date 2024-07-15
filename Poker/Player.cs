@@ -32,7 +32,7 @@ namespace Poker
             {
                 Console.WriteLine(Deck[i].DrawCard());
             }
-        } // Showing our deck
+        } // Showing your deck
         public void RaiseMoney(ref int bank, int amount)
         {
             bank += amount;
@@ -45,11 +45,151 @@ namespace Poker
                 Deck[i] = gameDeck.Pop();
             }
         } // Raising card to deck
-        public string ChooseMoveForComputer()
+        public string ChooseMoveForComputer(int lvl)
         {
-            // Wybranie najbardziej rozsadnej opcji, przypisanie jej do LastMove
-            return string.Empty;
-        }
+            // Adding the highest hand rank
+            HandRank handRank = PokerHandEvaluator.CheckHand(this);
+
+            // Random value for computer
+            Random random = new Random();
+            int value = random.Next(1, 11);
+
+            // Rate of deck cards
+            int valueOfCards = (int)Deck[0].Rank + (int)Deck[1].Rank;
+
+            // Choosing which move will computer take
+            if(lvl == 1)
+                LastMove = ChooseMove(handRank, value, valueOfCards);
+            else
+                LastMove = ChooseMove(handRank, value, valueOfCards, lvl - 1);
+
+            return LastMove.ToString();
+        } // Adding value to property 'LastMove'
+        private Move ChooseMove(HandRank handRank, int value, int valueOfCards)
+        {
+            if (handRank == HandRank.OnePair)
+            {
+                if (value >= 1 && value <= 7)
+                    return Move.Raise;
+                else
+                    return Move.Fold;
+            }
+            else
+            {
+                if (valueOfCards >= 4 && valueOfCards <= 12)
+                {
+                    if (value >= 1 && value <= 7)
+                        return Move.Pass;
+                    else if (value >= 8 && value <= 9)
+                        return Move.Fold;
+                    else
+                        return Monets == 0 ? Move.Fold : Move.Raise;
+                }
+                else if (valueOfCards > 12 && valueOfCards <= 20)
+                {
+                    if (value == 1)
+                        return Move.Pass;
+                    else if (value >= 3 && value <= 7)
+                        return Move.Fold;
+                    else
+                        return Monets == 0 ? Move.Fold : Move.Raise;
+                }
+                else
+                {
+                    if (value >= 1 && value <= 5)
+                        return Move.Fold;
+                    else
+                        return Monets == 0 ? Move.Fold : Move.Raise;
+                }
+            }
+        } // Logic for computer to choose move when deck will be raised
+        private Move ChooseMove(HandRank handRank, int value, int valueOfCards, int lvlRate)
+        {
+            if ((int)handRank >= 1 && 2 + lvlRate >= (int)handRank)
+            {
+                if (valueOfCards >= 4 && valueOfCards <= 16)
+                {
+                    if (value >= 1 && value <= 7)
+                        return Move.Pass;
+                    else if (value >= 8 && value <= 9)
+                        return Move.Fold;
+                    else
+                        return Monets == 0 ? Move.Fold : Move.Raise;
+                }
+                else if (valueOfCards > 16 && valueOfCards <= 21)
+                {
+                    if (value >= 1 && value <= 5)
+                        return Move.Pass;
+                    else if (value >= 6 && value <= 8)
+                        return Move.Fold;
+                    else
+                        return Monets == 0 ? Move.Fold : Move.Raise;
+                }
+                else
+                {
+                    if (value >= 1 && value <= 3)
+                        return Move.Pass;
+                    else if (value >= 3 && value <= 8)
+                        return Move.Fold;
+                    else
+                        return Monets == 0 ? Move.Fold : Move.Raise;
+                }
+            }
+            else if ((int)handRank >= 3 + lvlRate && 6 + lvlRate >= (int)handRank)
+            {
+                if (valueOfCards >= 4 && valueOfCards <= 16)
+                {
+                    if (value >= 1 && value <= 2)
+                        return Move.Pass;
+                    else if (value >= 3 && value <= 8)
+                        return Move.Fold;
+                    else
+                        return Monets == 0 ? Move.Fold : Move.Raise;
+                }
+                else if (valueOfCards > 16 && valueOfCards <= 21)
+                {
+                    if (value == 1)
+                        return Move.Pass;
+                    else if (value >= 2 && value <= 8)
+                        return Move.Fold;
+                    else
+                        return Monets == 0 ? Move.Fold : Move.Raise;
+                }
+                else
+                {
+                    if (value >= 1 && value <= 8)
+                        return Move.Fold;
+                    else
+                        return Monets == 0 ? Move.Fold : Move.Raise;
+                }
+            }
+            else
+            {
+                if (valueOfCards >= 4 && valueOfCards <= 16)
+                {
+                    if (value == 1)
+                        return Move.Pass;
+                    else if (value >= 2 && value <= 6)
+                        return Move.Fold;
+                    else
+                        return Monets == 0 ? Move.Fold : Move.Raise;
+                }
+                else if (valueOfCards > 16 && valueOfCards <= 21)
+                {
+                    if (value >= 1 && value <= 4)
+                        return Move.Fold;
+                    else
+                        return Monets == 0 ? Move.Fold : Move.Raise;
+                }
+                else
+                {
+                    if (value >= 1 && value <= 2)
+                        return Move.Fold;
+                    else
+                        return Monets == 0 ? Move.Fold : Move.Raise;
+                }
+            }
+        } // Logic for computer to choose move ( additionals cards on table)
         public static void CreatingDeck()
         {
             var suits = Enum.GetValues(typeof(Suit));
@@ -73,6 +213,7 @@ namespace Poker
                 gameDeck.Push(card);
             }
         } // Shuffle the deck
+
 
     }
 

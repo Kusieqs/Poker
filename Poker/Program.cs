@@ -1,17 +1,14 @@
 ﻿using Poker;
+using System.ComponentModel;
+using System.Xml.Linq;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
         // Setting name for a main player
-        string name;
-        do
-        {
-            Console.Clear();
-            name = Console.ReadLine();
-        } while (string.IsNullOrEmpty(name) || name.Length > 25);
-
+        string name = NickName();
+        Console.Clear();
 
         // choosing how many players do you want
         int players = HowManyPlayers();
@@ -26,7 +23,7 @@ internal class Program
         bool mode = WhichMode();
         Console.Clear();
 
-
+        
         if (mode)
             TexasHoldem.Game(players, monets, name);
     }
@@ -72,6 +69,29 @@ internal class Program
             }
         }
     } // Choosing how many monets do you want
+    private static string NickName()
+    {
+        string name;
+        while(true)
+        {
+            try
+            {
+                Console.Clear();
+                Console.Write("Nickname: ");
+                name = Console.ReadLine();
+                if (string.IsNullOrEmpty(name))
+                    throw new FormatException("Name is empty");
+                else if (name.Length > 25)
+                    throw new FormatException("Name is to long");
+
+                return name;
+            }
+            catch (Exception ex)
+            {
+                ExceptionString(ex.Message);
+            }
+        }
+    } // Choosing nickname for a main player
     private static bool WhichMode()
     {
         while (true)

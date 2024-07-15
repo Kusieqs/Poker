@@ -25,7 +25,7 @@
     }
     public enum HandRank
     {
-        HighCard,
+        HighCard = 1,
         OnePair,
         TwoPair,
         ThreeOfAKind,

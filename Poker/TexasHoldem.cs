@@ -48,11 +48,11 @@ namespace Poker
                 Player.Shuffle();
                 Console.Clear();
 
-                //Dealing cards to decks
+                // Dealing cards to decks
                 DealCards();
 
-
-                OptionsInGame(true);
+                // Take move from players
+                OptionsInGame(true, 0);
 
                 string cardsOnDeck = "";
                 Card card;
@@ -77,7 +77,7 @@ namespace Poker
                 // Croupier deals 1 card on the table
                 for (int i = 0; i < 2; i++)
                 {
-                    OptionsInGame(true);
+                    OptionsInGame(true, i+1);
                     Console.Clear();
                     Console.WriteLine("Your Deck\n");
                     listOfPlayers.Where(x => x.IsPlayer).First().ShowDeck();
@@ -91,9 +91,9 @@ namespace Poker
 
                 }
 
-                OptionsInGame(false);
+                OptionsInGame(false, 3);
                 Console.Clear();
-                HandRank handRank = PokerHandEvaluator.CheckHand(listOfPlayers.Where(x => x.IsPlayer).First().Deck, cardsOnTable);
+                HandRank handRank = PokerHandEvaluator.CheckHand(listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault());
 
                 listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault().ShowDeck();
                 Console.WriteLine(cardsOnDeck);
@@ -185,12 +185,12 @@ namespace Poker
             Console.ReadKey();
         } // Dealing 2 cards for each player
 
-        private static void OptionsInGame(bool x)
+        private static void OptionsInGame(bool option, int lvl)
         {
             Console.Clear();
 
             // Menu for player
-            string whichOption = x == true ? "Wait" : "Check"; 
+            string whichOption = option == true ? "Wait" : "Check"; 
             string options = $"\nOptions: 1 - Raise, 2 - {whichOption}, 3 - Pass \n\n";
 
             // Feature to show  deck
@@ -199,7 +199,7 @@ namespace Poker
 
             // Async methods 
             var userMove = GetUserMoveAsync();
-            var computerMove = GetComputerMoveAsync();
+            var computerMove = GetComputerMoveAsync(lvl);
             Task.WhenAll(userMove, computerMove).Wait();
 
             // Take action of move
@@ -217,11 +217,13 @@ namespace Poker
                     {
                         int.TryParse(Console.ReadLine(), out userDecision);
 
+                        // Excpetion when number is to low or high
                         if (userDecision < 1 || userDecision > 3)
                             throw new FormatException();
 
-                        Move userMove = (Move)(userDecision - 1);
-                        listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault().LastMove = userMove;
+                        // Adding Last move for a main player
+                        listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault().LastMove = (Move)(userDecision - 1);
+                        break;
                     }
                     catch (Exception)
                     {
@@ -230,7 +232,7 @@ namespace Poker
                 }
             });
         }
-        private static Task GetComputerMoveAsync()
+        private static Task GetComputerMoveAsync(int lvl)
         {
             return Task.Run(async () =>
             {
@@ -258,7 +260,7 @@ namespace Poker
                     }
                     await Task.Delay(random.Next(1000, 5000));
 
-                    string move = listOfPlayers[whichPlayer].ChooseMoveForComputer();
+                    string move = listOfPlayers[whichPlayer].ChooseMoveForComputer(lvl);
                     Console.WriteLine($"{listOfPlayers[whichPlayer].Name} {move}");
                 }
             });

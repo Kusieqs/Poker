@@ -8,18 +8,18 @@ namespace Poker
 {
     public class PokerHandEvaluator
     {
-        public static HandRank CheckHand(Card[] deck, List<Card> cardsOnTable)
+        public static HandRank CheckHand(Player player)
         {
-            int leng = deck.Length + cardsOnTable.Count;
+            int leng = player.Deck.Length + TexasHoldem.cardsOnTable.Count;
             Card[] hand = new Card[leng];
 
             // Adding to  new Tab
             for(int i = 0; i < leng; i++)
             {
                 if (i == 0 || i == 1)
-                    hand[i] = deck[i];
+                    hand[i] = player.Deck[i];
                 else
-                    hand[i] = cardsOnTable[i-2];
+                    hand[i] = TexasHoldem.cardsOnTable[i-2];
             }
 
             if (IsRoyalFlush(hand)) return HandRank.RoyalFlush;
