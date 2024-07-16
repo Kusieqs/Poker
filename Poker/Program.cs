@@ -1,7 +1,15 @@
-﻿internal class Program
+﻿using Poker;
+using System.ComponentModel;
+using System.Xml.Linq;
+
+internal class Program
 {
     private static void Main(string[] args)
     {
+        // Setting name for a main player
+        string name = NickName();
+        Console.Clear();
+
         // choosing how many players do you want
         int players = HowManyPlayers();
         Console.Clear();
@@ -14,6 +22,10 @@
         // TRUE - Texas holdem
         bool mode = WhichMode();
         Console.Clear();
+
+        
+        if (mode)
+            TexasHoldem.Game(players, monets, name);
     }
 
     private static int HowManyPlayers() 
@@ -57,6 +69,29 @@
             }
         }
     } // Choosing how many monets do you want
+    private static string NickName()
+    {
+        string name;
+        while(true)
+        {
+            try
+            {
+                Console.Clear();
+                Console.Write("Nickname: ");
+                name = Console.ReadLine();
+                if (string.IsNullOrEmpty(name))
+                    throw new FormatException("Name is empty");
+                else if (name.Length > 25)
+                    throw new FormatException("Name is to long");
+
+                return name;
+            }
+            catch (Exception ex)
+            {
+                ExceptionString(ex.Message);
+            }
+        }
+    } // Choosing nickname for a main player
     private static bool WhichMode()
     {
         while (true)
@@ -77,10 +112,11 @@
             }
         }
     } // Choosing which game do you want to play
-    private static void ExceptionString()
+    public static void ExceptionString(string exception = "")
     {
+        Console.WriteLine();
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("Wrong number or format");
+        Console.WriteLine(exception == "" ? "Wrong number or format" : exception);
         Console.ResetColor();
         Console.ReadKey();
         Console.Clear();
