@@ -15,6 +15,7 @@ namespace Poker
         public string Name { get; set; }
         public int Monets { get; set; }
         public bool IsPlayer { get; private set; }
+        public bool IsPlaying { get; set; } = true;
         public Move LastMove { get; set; }
         public Card[] Deck { get; set; }
 
@@ -33,9 +34,9 @@ namespace Poker
                 Console.WriteLine(Deck[i].DrawCard());
             }
         } // Showing your deck
-        public void RaiseMoney(ref int bank, int amount)
+        public void RaiseMoney(int amount)
         {
-            bank += amount;
+            TexasHoldem.bank += amount;
             Monets -= amount;
         } // Raise money to bank and also taking from pocket
         public void RaiseCard()

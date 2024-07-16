@@ -12,11 +12,12 @@ namespace Poker
     public static class TexasHoldem
     {
         public static List<Player> listOfPlayers = new List<Player>(); // list of players
-        public static List<Card> cardsOnTable = new List<Card>();
+        public static List<Card> cardsOnTable = new List<Card>(); // cards on the table
+        public static int bank; // bank amount
         public static void Game(int players, int monets, string name)
         {
             // adding new players to game
-            for (int i = 0; i < players; i++)
+            for (int i = 0; i < players + 1; i++)
             {
                 Player player = new Player(monets, i == 0 ? true : false, 2, i == 0 ? name : $"Player {i}");
                 listOfPlayers.Add(player);
@@ -32,12 +33,12 @@ namespace Poker
             // Game engine
             do
             {
-                // bank amount
-                int bank = 0;
+                // Setting that everybody will play
+                SettingWhichPlayerWillPlay(true);
                 Console.Clear();
 
                 // Checking whether our player is enable to play
-                bool IsPlaying = StartRoundMenu(ref bank);
+                bool IsPlaying = StartRoundMenu();
 
                 // Exit game
                 if (!IsPlaying)
@@ -53,6 +54,9 @@ namespace Poker
 
                 // Take move from players
                 OptionsInGame(true, 0);
+
+
+                //// //// //// //// //// //// //// //// //// //// #########################
 
                 string cardsOnDeck = "";
                 Card card;
@@ -102,7 +106,7 @@ namespace Poker
 
             } while (true);
         } // Engine of the game
-        public static bool StartRoundMenu(ref int bank)
+        public static bool StartRoundMenu()
         {
             int choose = 0;
             do
@@ -128,7 +132,7 @@ namespace Poker
                                 listOfPlayers.Remove(player);
                                 continue;
                             }
-                            player.RaiseMoney(ref bank, 50);
+                            player.RaiseMoney(50);
                         }
 
                         return true;
@@ -184,7 +188,6 @@ namespace Poker
             Console.WriteLine("\n\nClick enter to continue");
             Console.ReadKey();
         } // Dealing 2 cards for each player
-
         private static void OptionsInGame(bool option, int lvl)
         {
             Console.Clear();
@@ -193,7 +196,7 @@ namespace Poker
             string whichOption = option == true ? "Wait" : "Check"; 
             string options = $"\nOptions: 1 - Raise, 2 - {whichOption}, 3 - Pass \n\n";
 
-            // Feature to show  deck
+            // Feature to show deck
             listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault().ShowDeck();
             Console.WriteLine(options);
 
@@ -202,9 +205,14 @@ namespace Poker
             var computerMove = GetComputerMoveAsync(lvl);
             Task.WhenAll(userMove, computerMove).Wait();
 
-            // Take action of move
-        }
+            // Setting which player choosed pass
+            SettingWhichPlayerWillPlay();
 
+            // Method to raise amount of money (if somebody choosed raise)
+            if (listOfPlayers.Any(x => x.LastMove == Move.Raise && x.IsPlaying))
+                RaiseActivePlayers();
+
+        } // Options for players when cards was putted by croupier
         private static Task GetUserMoveAsync()
         {
             return Task.Run(() =>
@@ -231,42 +239,63 @@ namespace Poker
                     }
                 }
             });
-        }
+        } // Async method for user
         private static Task GetComputerMoveAsync(int lvl)
         {
             return Task.Run(async () =>
             {
-                Random random = new Random();
-                bool[] playerCorrect = new bool[listOfPlayers.Count - 1];
+                Dictionary<Player,bool> activePlayers = new Dictionary<Player,bool>();
 
-                for(int i = 0; i < playerCorrect.Length; i++) 
+                for(int i = 0; i < listOfPlayers.Count; i++)
                 {
-                    playerCorrect[i] = false;
+                    if (!listOfPlayers[i].IsPlayer && listOfPlayers[i].IsPlaying)
+                        activePlayers.Add(listOfPlayers[i], false);
                 }
 
-                int whichPlayer = 0;
-                for (int i = 0; i < listOfPlayers.Count - 1; i++)
+                Random random = new Random();
+                Player player = null;
+                for (int i = 0; i < activePlayers.Count; i++)
                 {
-                    while(true)
+                    string name;
+                    while (true)
                     {
-                        whichPlayer = random.Next(1, listOfPlayers.Count);
-                        if (playerCorrect[whichPlayer - 1] == true)
+                        int indexOfPlayer = random.Next(0, activePlayers.Count);
+                        player = activePlayers.Keys.ElementAt(indexOfPlayer);
+
+                        if (activePlayers[player] == true)
                             continue;
                         else
                         {
-                            playerCorrect[whichPlayer-1] = true;
+                            activePlayers[player] = true;
+                            name = player.Name;
                             break;
                         }
                     }
                     await Task.Delay(random.Next(1000, 5000));
 
-                    string move = listOfPlayers[whichPlayer].ChooseMoveForComputer(lvl);
-                    Console.WriteLine($"{listOfPlayers[whichPlayer].Name} {move}");
+                    string move = listOfPlayers.Where(x => x.Name == name).FirstOrDefault().ChooseMoveForComputer(lvl);
+                    Console.WriteLine($"{listOfPlayers.Where(x => x.Name == name).FirstOrDefault().Name} {move}");
                 }
             });
-        }
+        } // Async method for computer
+        private static void SettingWhichPlayerWillPlay(bool isPlaying = false)
+        {
+            foreach (Player player in listOfPlayers)
+            {
+                if (!isPlaying && player.LastMove == Move.Pass)
+                    player.IsPlaying = false;
 
-
+                if (isPlaying)
+                    player.LastMove = Move.Fold;
+            }
+        } // Setting which player is enable to play
+        private static void RaiseActivePlayers()
+        {
+            for(int i = 0; i < listOfPlayers.Where(x => x.IsPlaying).Count(); i++)
+            {
+                // CZY KAZDY PO KOLEI CZY NIE? / SPRAWDZANIE CZY MA MONETY / CALL / ALL IN / RAISE
+            }
+        } 
 
     }
 }
