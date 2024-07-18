@@ -31,8 +31,9 @@ namespace Poker
             Console.WriteLine("Your deck: ");
             for (int i = 0; i < Deck.Length;i++)
             {
-                Console.WriteLine(Deck[i].DrawCard());
+                Deck[i].DrawCard();
             }
+            Console.WriteLine();
         } // Showing your deck
         public void RaiseMoney(int amount)
         {
@@ -228,10 +229,20 @@ namespace Poker
             Rank = rank;
         }
 
-        public string DrawCard()
+        public void DrawCard(ConsoleColor color = ConsoleColor.Magenta)
         {
-            return $"{Rank} {Suit}";
+            Console.ForegroundColor = color;
+            Console.WriteLine($"{Rank}\t{Suit}");
+            Console.ResetColor();
         } // draw card
+        public static void DrawCardOnTable(List<Card> listOfCards, int sleep = 0)
+        {
+            foreach(Card card in listOfCards)
+            {
+                Thread.Sleep(sleep);
+                card.DrawCard(ConsoleColor.DarkMagenta);
+            }
+        } // draw cards on the table
     }
 
 

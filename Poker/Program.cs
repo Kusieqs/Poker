@@ -10,17 +10,17 @@ internal class Program
         string name = NickName();
         Console.Clear();
 
+        // FALSE - Five-card
+        // TRUE - Texas holdem
+        bool mode = WhichMode();
+        Console.Clear();
+
         // choosing how many players do you want
         int players = HowManyPlayers();
         Console.Clear();
 
         // Choosing how many monets do you want
         int monets = HowManyMonets();
-        Console.Clear();
-
-        // FALSE - Five-card
-        // TRUE - Texas holdem
-        bool mode = WhichMode();
         Console.Clear();
 
         
@@ -99,7 +99,7 @@ internal class Program
             try
             {
                 Console.WriteLine("Choose which mode do you want to play\n1 - Texas Holdem\n2 - Five-card Draw");
-                Console.Write("Monets: ");
+                Console.Write("\nMode: ");
                 int mode = int.Parse(Console.ReadLine());
                 if (mode > 0 && mode < 3)
                     return mode == 1;
