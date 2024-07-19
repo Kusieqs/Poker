@@ -14,7 +14,7 @@ namespace Poker
         public static List<Player> listOfPlayers = new List<Player>(); // list of players
         public static List<Card> cardsOnTable = new List<Card>(); // cards on the table
         public static int bank; // bank amount
-        private static (int, int) cords;
+        private static bool chooseOption;
         public static void Game(int players, int monets, string name)
         {
             // adding new players to game
@@ -212,7 +212,7 @@ namespace Poker
 
             // Async methods 
             var userMove = GetUserMoveAsync();
-            var computerMove = GetComputerMoveAsync(lvl,cursor);
+            var computerMove = GetComputerMoveAsync(lvl,cursor,cords);
             Task.WhenAll(userMove, computerMove).Wait();
 
             // Setting which player choosed pass
@@ -229,30 +229,33 @@ namespace Poker
             {
                 while (true)
                 {
-                    int userDecision;
-
-                    try
+                    ConsoleKeyInfo consoleKeyInfo;
+                    do
                     {
+                        consoleKeyInfo = Console.ReadKey(intercept: true);
 
-                        // wpisywanie stringa za pomoca charow???? !!!!!!!!!!!!!!!!!!!!!!!!!
-                        int.TryParse(Console.ReadLine(), out userDecision);
+                        if(int.TryParse(consoleKeyInfo.KeyChar.ToString(), out int result))
+                        {
+                            if(result >= 1 && result <= 3)
+                            {
+                                Move moveEnum = (Move)result;
+                                Console.ForegroundColor = ConsoleColor.Green;
+                                Console.Write(moveEnum.ToString());
+                                Console.ResetColor();
+                                chooseOption = true;
+                                break;
+                            }
+                        }
 
-                        // Excpetion when number is to low or high
-                        if (userDecision < 1 || userDecision > 3)
-                            throw new FormatException();
+                    } while (true);
 
-                        // Adding Last move for a main player
-                        listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault().LastMove = (Move)(userDecision - 1);
-                        break;
-                    }
-                    catch (Exception)
-                    {
-                        Program.ExceptionString();
-                    }
+                    // Adding Last move for a main player
+                    listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault().LastMove = (Move)(consoleKeyInfo.KeyChar - 1);
+                    break;
                 }
             });
         } // Async method for user
-        private static Task GetComputerMoveAsync(int lvl, Dictionary<Player, (int, int)> cursor)
+        private static Task GetComputerMoveAsync(int lvl, Dictionary<Player, (int, int)> cursor, (int, int) cords)
         {
             return Task.Run(async () =>
             {
@@ -290,6 +293,8 @@ namespace Poker
                     Console.ForegroundColor = ConsoleColor.DarkGreen;
                     Console.Write($"{move}");
                     Console.ResetColor();
+                    if(!chooseOption)
+                        Console.SetCursorPosition(cords.Item1, cords.Item2);
                 }
             });
         } // Async method for computer

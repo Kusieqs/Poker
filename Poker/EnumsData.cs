@@ -38,7 +38,7 @@
     }
     public enum Move
     {
-        Raise,
+        Raise = 1,
         Fold,
         Pass
     }
