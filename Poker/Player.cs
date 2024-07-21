@@ -16,6 +16,7 @@ namespace Poker
         public int Monets { get; set; }
         public bool IsPlayer { get; private set; }
         public bool IsPlaying { get; set; } = true;
+        public bool FirstRaised { get; set; } = false;
         public Move LastMove { get; set; }
         public Card[] Deck { get; set; }
 
@@ -37,6 +38,9 @@ namespace Poker
         } // Showing your deck
         public void RaiseMoney(int amount)
         {
+            if (amount > Monets)
+                throw new FormatException("You don't have enough money to raise!");
+
             TexasHoldem.bank += amount;
             Monets -= amount;
         } // Raise money to bank and also taking from pocket

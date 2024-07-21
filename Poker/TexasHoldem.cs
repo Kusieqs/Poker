@@ -184,7 +184,7 @@ namespace Poker
             string options = $"\nOptions:\n\n1 - Raise\n2 - {whichOption}\n3 - Pass \n\n";
 
             BankShow();
-            Console.WriteLine();
+            Console.WriteLine("\n");
             // Feature to show deck
             listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault().ShowDeck();
             
@@ -250,7 +250,10 @@ namespace Poker
                     } while (true);
 
                     // Adding Last move for a main player
-                    listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault().LastMove = (Move)(consoleKeyInfo.KeyChar - 1);
+                    if (listOfPlayers.Any(x => !x.FirstRaised))
+                        listOfPlayers[0].FirstRaised = true;
+
+                    listOfPlayers[0].LastMove = (Move)(consoleKeyInfo.KeyChar - 1);
                     break;
                 }
             });
@@ -288,6 +291,9 @@ namespace Poker
                     }
                     await Task.Delay(random.Next(1000, 5000));
 
+                    if (listOfPlayers.Any(x => !x.FirstRaised))
+                        listOfPlayers[i].FirstRaised = true;
+
                     string move = listOfPlayers.Where(x => x.Name == name).FirstOrDefault().ChooseMoveForComputer(lvl);
                     Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
                     Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -311,6 +317,48 @@ namespace Poker
         } // Setting which player is enable to play
         private static void RaiseActivePlayers()
         {
+
+            if (listOfPlayers[0].FirstRaised)
+            {
+
+                while(true)
+                {
+                    Console.Clear();
+                    BankShow();
+                    Console.WriteLine("\n");
+                    listOfPlayers[0].ShowDeck();
+
+                    foreach (Player player in listOfPlayers)
+                    {
+                        if (!player.IsPlayer)
+                        {
+                            Console.Write($"{player.Name}\tMonets: {player.Monets}\tMove: ");
+                            Console.WriteLine("\n");
+                        }
+                    }
+
+                    try
+                    {
+                        Console.Write("Write amount of monets: ");
+                        int amount = int.Parse(Console.ReadLine());
+                        listOfPlayers[0].RaiseMoney(amount);
+                        break;
+                    }   
+                    catch (Exception)
+                    {
+                        Program.ExceptionString();
+                    }
+                }
+
+            }
+            else
+            {
+
+            }
+
+
+
+            // ten kto pierwszy dal raise -> cialo if esle
             for(int i = 0; i < listOfPlayers.Where(x => x.IsPlaying).Count(); i++)
             {
                 // CZY KAZDY PO KOLEI CZY NIE? / SPRAWDZANIE CZY MA MONETY / CALL / ALL IN / RAISE
