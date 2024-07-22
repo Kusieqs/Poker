@@ -39,7 +39,7 @@ namespace Poker
         public void RaiseMoney(int amount)
         {
             if (amount > Monets)
-                throw new FormatException("You don't have enough money to raise!");
+                throw new FormatException();
 
             TexasHoldem.bank += amount;
             Monets -= amount;
@@ -196,6 +196,10 @@ namespace Poker
                 }
             }
         } // Logic for computer to choose move ( additionals cards on table)
+        public string RaiseOption()
+        {
+            return "Test";
+        }
         public static void CreatingDeck()
         {
             var suits = Enum.GetValues(typeof(Suit));

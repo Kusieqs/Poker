@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Poker
 {
@@ -150,7 +152,7 @@ namespace Poker
         } // Starting round for player
         public static void DealCards()
         {
-            BankShow();
+            BankShow(false);
             Console.WriteLine("Croupier deals the cards . . .\n");
             Thread.Sleep(1000);
             int i = 1;
@@ -184,10 +186,7 @@ namespace Poker
             string options = $"\nOptions:\n\n1 - Raise\n2 - {whichOption}\n3 - Pass \n\n";
 
             BankShow();
-            Console.WriteLine("\n");
-            // Feature to show deck
-            listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault().ShowDeck();
-            
+           
             if(cardsOnTable.Count != 0)
             {
                 Console.WriteLine("Cards on table:");
@@ -195,8 +194,8 @@ namespace Poker
             }
 
             Console.WriteLine(options);
-
             Dictionary<Player, (int, int)> cursor = new Dictionary<Player, (int, int)>();
+
             foreach(Player player in listOfPlayers)
             {
                 if(!player.IsPlayer)
@@ -262,46 +261,7 @@ namespace Poker
         {
             return Task.Run(async () =>
             {
-                Dictionary<Player,bool> activePlayers = new Dictionary<Player,bool>();
-
-                for(int i = 0; i < listOfPlayers.Count; i++)
-                {
-                    if (!listOfPlayers[i].IsPlayer && listOfPlayers[i].IsPlaying)
-                        activePlayers.Add(listOfPlayers[i], false);
-                }
-
-                Random random = new Random();
-                Player player = null;
-                for (int i = 0; i < activePlayers.Count; i++)
-                {
-                    string name;
-                    while (true)
-                    {
-                        int indexOfPlayer = random.Next(0, activePlayers.Count);
-                        player = activePlayers.Keys.ElementAt(indexOfPlayer);
-
-                        if (activePlayers[player] == true)
-                            continue;
-                        else
-                        {
-                            activePlayers[player] = true;
-                            name = player.Name;
-                            break;
-                        }
-                    }
-                    await Task.Delay(random.Next(1000, 5000));
-
-                    if (listOfPlayers.Any(x => !x.FirstRaised))
-                        listOfPlayers[i].FirstRaised = true;
-
-                    string move = listOfPlayers.Where(x => x.Name == name).FirstOrDefault().ChooseMoveForComputer(lvl);
-                    Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
-                    Console.ForegroundColor = ConsoleColor.DarkGreen;
-                    Console.Write($"{move}");
-                    Console.ResetColor();
-                    if(!chooseOption)
-                        Console.SetCursorPosition(cords.Item1, cords.Item2);
-                }
+                await RandomPlayerChoose(cursor, false,lvl);
             });
         } // Async method for computer
         private static void SettingWhichPlayerWillPlay(bool isPlaying = false)
@@ -317,22 +277,21 @@ namespace Poker
         } // Setting which player is enable to play
         private static void RaiseActivePlayers()
         {
+            Dictionary<Player, (int, int)> cursor = new Dictionary<Player, (int, int)>();
 
             if (listOfPlayers[0].FirstRaised)
             {
-
                 while(true)
                 {
                     Console.Clear();
                     BankShow();
-                    Console.WriteLine("\n");
-                    listOfPlayers[0].ShowDeck();
 
                     foreach (Player player in listOfPlayers)
                     {
                         if (!player.IsPlayer)
                         {
                             Console.Write($"{player.Name}\tMonets: {player.Monets}\tMove: ");
+                            cursor.Add(player, Console.GetCursorPosition());
                             Console.WriteLine("\n");
                         }
                     }
@@ -346,29 +305,91 @@ namespace Poker
                     }   
                     catch (Exception)
                     {
+                        cursor.Clear();
                         Program.ExceptionString();
                     }
                 }
 
+                Task task = RandomPlayerChoose(cursor, true, 0);
+                Console.ReadKey();
             }
             else
             {
-
+                // metoda ktora bedzie nam wybierac dana kwote ( rozsadna )
             }
 
 
-
-            // ten kto pierwszy dal raise -> cialo if esle
-            for(int i = 0; i < listOfPlayers.Where(x => x.IsPlaying).Count(); i++)
+            for(int i = 0; i < listOfPlayers.Where(x => x.IsPlaying && !x.FirstRaised).Count(); i++)
             {
                 // CZY KAZDY PO KOLEI CZY NIE? / SPRAWDZANIE CZY MA MONETY / CALL / ALL IN / RAISE
+                // Asynchroniczna metoda dla naszego uzytkownika
             }
         } 
-        private static void BankShow()
+        private static void BankShow(bool x = true)
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine($"Bank: {bank}");
             Console.ResetColor();
+            Console.WriteLine($"Your money: {listOfPlayers[0].Monets}\n");
+
+            if(x)
+                listOfPlayers[0].ShowDeck();
+        }
+        private static Dictionary<Player, bool> ActivePlayersToDictionary()
+        {
+            Dictionary<Player, bool> activePlayers = new Dictionary<Player, bool>();
+            for (int i = 0; i < listOfPlayers.Count; i++)
+            {
+                if (!listOfPlayers[i].IsPlayer && listOfPlayers[i].IsPlaying)
+                    activePlayers.Add(listOfPlayers[i], false);
+            }
+
+            return activePlayers;
+        }
+        private static async Task RandomPlayerChoose(Dictionary<Player, (int, int)> cursor, bool raise, int lvl)
+        {
+            Dictionary<Player, bool> activePlayers = ActivePlayersToDictionary();
+            var cords = Console.GetCursorPosition();
+
+
+            for (int i = 0; i < activePlayers.Count; i++)
+            {
+                Random random = new Random();
+                Player player = null;
+                string name;
+                while (true)
+                {
+                    int indexOfPlayer = random.Next(0, activePlayers.Count);
+                    player = activePlayers.Keys.ElementAt(indexOfPlayer);
+
+                    if (activePlayers[player] == true)
+                        continue;
+                    else
+                    {
+                        activePlayers[player] = true;
+                        name = player.Name;
+                        break;
+                    }
+                }
+                await Task.Delay(random.Next(1000, 5000));
+
+                if (listOfPlayers.Any(x => !x.FirstRaised) && !raise)
+                    listOfPlayers[i].FirstRaised = true;
+
+
+                string move;
+                if(raise)
+                    move = listOfPlayers.Where(x => x.Name == name).FirstOrDefault().RaiseOption();
+                else
+                    move = listOfPlayers.Where(x => x.Name == name).FirstOrDefault().ChooseMoveForComputer(lvl);
+
+                Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.Write($"{move}");
+                Console.ResetColor();
+                if (!chooseOption)
+                    Console.SetCursorPosition(cords.Item1, cords.Item2);
+            }
         }
 
     }
