@@ -64,7 +64,7 @@ namespace Poker
             int valueOfCards = (int)Deck[0].Rank + (int)Deck[1].Rank;
 
             // Choosing which move will computer take
-            if(lvl == 1)
+            if(lvl == 0)
                 LastMove = ChooseMove(handRank, value, valueOfCards);
             else
                 LastMove = ChooseMove(handRank, value, valueOfCards, lvl - 1);
@@ -198,6 +198,13 @@ namespace Poker
         } // Logic for computer to choose move ( additionals cards on table)
         public string RaiseOption()
         {
+            HandRank handRank = PokerHandEvaluator.CheckHand(this);
+
+            int valueOfCards = (int)Deck[0].Rank + (int)Deck[1].Rank;
+
+            // komputer najpierw wybeira czy chce blefowac teraaz czy nie/ jesli chce t ogra na wiekwszym ryzyku a jesli nie to na mniejszym i wieksze prawdopodobienstwo spasowania
+            // metoda ktora bedzie nam mowic czy komputer chce grac dalej czy nie Call/Pass
+
             return "Test";
         }
         public static void CreatingDeck()

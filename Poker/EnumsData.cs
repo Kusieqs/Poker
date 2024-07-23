@@ -40,6 +40,8 @@
     {
         Raise = 1,
         Fold,
-        Pass
+        Pass,
+        Call,
+        AllIn
     }
 }

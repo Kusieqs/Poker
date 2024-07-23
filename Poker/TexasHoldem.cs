@@ -313,7 +313,6 @@ namespace Poker
                         Program.ExceptionString();
                     }
                 }
-
                 RandomPlayerChoose(cursor, true, 0);
                 Console.ReadKey();
             }
@@ -326,7 +325,7 @@ namespace Poker
             BankShow();
             Console.ReadKey();
 
-            // Metoda dla uzytkownika jesli nie byl pierwszy w placeniu / metody dla pozostalych playerow
+            // Metoda dla uzytkownika jesli nie byl pierwszy w placeniu / metody dla pozostalych playerow asynchroniczne
 
 
         } 
