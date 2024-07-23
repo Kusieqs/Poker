@@ -198,7 +198,7 @@ namespace Poker
 
             foreach(Player player in listOfPlayers)
             {
-                if(!player.IsPlayer)
+                if(!player.IsPlayer && player.IsPlaying)
                 {
                     Console.Write($"{player.Name}\tMonets: {player.Monets}\tMove: ");
                     cursor.Add(player, (Console.GetCursorPosition()));
@@ -211,8 +211,11 @@ namespace Poker
 
             // Async methods 
             var userMove = GetUserMoveAsync();
-            var computerMove = GetComputerMoveAsync(lvl,cursor,cords);
+            var computerMove = GetComputerMoveAsync(lvl,cursor);
             Task.WhenAll(userMove, computerMove).Wait();
+            Console.SetCursorPosition(0, cords.Top+2);
+            Console.WriteLine("Click enter to continue");
+            Console.ReadKey();
 
             // Setting which player choosed pass
             SettingWhichPlayerWillPlay();
@@ -226,6 +229,7 @@ namespace Poker
         {
             return Task.Run(() =>
             {
+                Move moveEnum;
                 while (true)
                 {
                     ConsoleKeyInfo consoleKeyInfo;
@@ -237,7 +241,7 @@ namespace Poker
                         {
                             if(result >= 1 && result <= 3)
                             {
-                                Move moveEnum = (Move)result;
+                                moveEnum = (Move)result;
                                 Console.ForegroundColor = ConsoleColor.Green;
                                 Console.Write(moveEnum.ToString());
                                 Console.ResetColor();
@@ -249,7 +253,7 @@ namespace Poker
                     } while (true);
 
                     // Adding Last move for a main player
-                    if (listOfPlayers.Any(x => !x.FirstRaised))
+                    if (listOfPlayers.All(x => !x.FirstRaised) && Move.Raise == moveEnum)
                         listOfPlayers[0].FirstRaised = true;
 
                     listOfPlayers[0].LastMove = (Move)(consoleKeyInfo.KeyChar - 1);
@@ -257,7 +261,7 @@ namespace Poker
                 }
             });
         } // Async method for user
-        private static Task GetComputerMoveAsync(int lvl, Dictionary<Player, (int, int)> cursor, (int, int) cords)
+        private static Task GetComputerMoveAsync(int lvl, Dictionary<Player, (int, int)> cursor)
         {
             return Task.Run(async () =>
             {
@@ -288,7 +292,7 @@ namespace Poker
 
                     foreach (Player player in listOfPlayers)
                     {
-                        if (!player.IsPlayer)
+                        if (!player.IsPlayer && player.IsPlaying)
                         {
                             Console.Write($"{player.Name}\tMonets: {player.Monets}\tMove: ");
                             cursor.Add(player, Console.GetCursorPosition());
@@ -310,20 +314,21 @@ namespace Poker
                     }
                 }
 
-                Task task = RandomPlayerChoose(cursor, true, 0);
+                RandomPlayerChoose(cursor, true, 0);
                 Console.ReadKey();
             }
             else
             {
-                // metoda ktora bedzie nam wybierac dana kwote ( rozsadna )
+                // Metoda do podania danej liczby na podbicie, ( musi to jakos miec korelacje z tym jaki ma dekc)
             }
 
+            Console.Clear();
+            BankShow();
+            Console.ReadKey();
 
-            for(int i = 0; i < listOfPlayers.Where(x => x.IsPlaying && !x.FirstRaised).Count(); i++)
-            {
-                // CZY KAZDY PO KOLEI CZY NIE? / SPRAWDZANIE CZY MA MONETY / CALL / ALL IN / RAISE
-                // Asynchroniczna metoda dla naszego uzytkownika
-            }
+            // Metoda dla uzytkownika jesli nie byl pierwszy w placeniu / metody dla pozostalych playerow
+
+
         } 
         private static void BankShow(bool x = true)
         {
@@ -373,15 +378,16 @@ namespace Poker
                 }
                 await Task.Delay(random.Next(1000, 5000));
 
-                if (listOfPlayers.Any(x => !x.FirstRaised) && !raise)
-                    listOfPlayers[i].FirstRaised = true;
-
-
                 string move;
                 if(raise)
-                    move = listOfPlayers.Where(x => x.Name == name).FirstOrDefault().RaiseOption();
+                    move = listOfPlayers.Where(x => x.Name == name).First().RaiseOption();
                 else
-                    move = listOfPlayers.Where(x => x.Name == name).FirstOrDefault().ChooseMoveForComputer(lvl);
+                {
+                    move = listOfPlayers.Where(x => x.Name == name).First().ChooseMoveForComputer(lvl);
+
+                    if (listOfPlayers.All(x => !x.FirstRaised) && Move.Raise == listOfPlayers.Where(x => x == player).First().LastMove)
+                        listOfPlayers.Where(x => x == player).First().FirstRaised = true;
+                }
 
                 Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
