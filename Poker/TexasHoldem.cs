@@ -322,15 +322,45 @@ namespace Poker
             }
             else
             {
+                Console.Clear();
+                BankShow();
+
+                foreach (Player player in listOfPlayers)
+                {
+                    if (!player.IsPlayer && player.IsPlaying)
+                    {
+                        Console.Write($"{player.Name}\tMonets: {player.Monets}\tMove: ");
+                        cursor.Add(player, Console.GetCursorPosition());
+                        Console.WriteLine("\n");
+                    }
+                }
+
+
+                HandRank handRank = PokerHandEvaluator.CheckHand(listOfPlayers.Where(x => x.FirstRaised).First());
+                int monets = listOfPlayers.Where(x => x.FirstRaised).First().Monets;
+
+                if ((int)handRank >= 0 && (int)handRank <= 3)
+                    monets = StrongCall(0.3, monets);
+                else if ((int)handRank >= 4 && (int)handRank <= 8)
+                    monets = StrongCall(0.6, monets);
+                else
+                    monets = StrongCall(1, monets);
+
+                Thread.Sleep(2000);
+
+                Player player1 = listOfPlayers.Where(x => x.FirstRaised).FirstOrDefault();
+                Console.SetCursorPosition(cursor[player1].Item1, cursor[player1].Item2);
+
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"Raised {monets} monets!");
+                listOfPlayers.Where(x => x.FirstRaised).FirstOrDefault().RaiseMoney(monets);
+                Console.ResetColor();
+                Console.ReadKey();
+
                 // Metoda do podania danej liczby na podbicie, ( musi to jakos miec korelacje z tym jaki ma dekc) // async -> Call/Pass
 
             }
 
-            Console.Clear();
-            BankShow();
-            Console.ReadKey();
-
-            // Metoda dla uzytkownika jesli nie byl pierwszy w placeniu / metody dla pozostalych playerow asynchroniczne
 
 
         }
@@ -412,6 +442,38 @@ namespace Poker
                 if (!chooseOption)
                     Console.SetCursorPosition(cords.Item1, cords.Item2);
             }
+        }
+        private static int StrongCall(double procent, int monets)
+        {
+            Random random = new Random();
+            int amount = (int)Math.Round(monets * procent);
+            int probability = random.Next(1, 11);
+
+            switch (procent)
+            {
+                case 0.3:
+                    if (probability >= 1 && probability <= 6)
+                        return random.Next(1, amount);
+                    else
+                        return amount;
+                case 0.6:
+                    if (probability >= 1 && probability <= 6)
+                        return random.Next(1, amount);
+                    else if (probability == 10)
+                        return monets;
+                    else
+                        return amount;
+
+                case 1:
+                    if (probability >= 1 && probability <= 6)
+                        return random.Next(1, amount);
+                    else if (probability == 7 || probability == 8)
+                        return monets;
+                    else
+                        return amount;
+            }
+            return 0;
+
         }
 
     }
