@@ -42,6 +42,5 @@
         Fold,
         Pass,
         Call,
-        AllIn
     }
 }

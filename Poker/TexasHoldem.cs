@@ -152,8 +152,7 @@ namespace Poker
         } // Starting round for player
         public static void DealCards()
         {
-            BankShow(false);
-            Console.WriteLine("Croupier deals the cards . . .\n");
+            BankShow(false, "Croupier deals the cards . . .\n");
             Thread.Sleep(1000);
             int i = 1;
 
@@ -282,7 +281,7 @@ namespace Poker
         private static void RaiseActivePlayers()
         {
             Dictionary<Player, (int, int)> cursor = new Dictionary<Player, (int, int)>();
-
+            int amount;
             if (listOfPlayers[0].FirstRaised)
             {
                 while(true)
@@ -303,7 +302,12 @@ namespace Poker
                     try
                     {
                         Console.Write("Write amount of monets: ");
-                        int amount = int.Parse(Console.ReadLine());
+                        amount = int.Parse(Console.ReadLine());
+
+                        if (listOfPlayers.Where(x => !x.IsPlayer).All(x => x.Monets < amount))
+                            amount = listOfPlayers.Where(x => !x.IsPlayer).Max(x => x.Monets);
+
+
                         listOfPlayers[0].RaiseMoney(amount);
                         break;
                     }   
@@ -313,12 +317,13 @@ namespace Poker
                         Program.ExceptionString();
                     }
                 }
-                RandomPlayerChoose(cursor, true, 0);
+                RandomPlayerChoose(cursor, true, amount: amount);
                 Console.ReadKey();
             }
             else
             {
-                // Metoda do podania danej liczby na podbicie, ( musi to jakos miec korelacje z tym jaki ma dekc)
+                // Metoda do podania danej liczby na podbicie, ( musi to jakos miec korelacje z tym jaki ma dekc) // async -> Call/Pass
+
             }
 
             Console.Clear();
@@ -328,15 +333,18 @@ namespace Poker
             // Metoda dla uzytkownika jesli nie byl pierwszy w placeniu / metody dla pozostalych playerow asynchroniczne
 
 
-        } 
-        private static void BankShow(bool x = true)
+        }
+        private static void BankShow(bool x = true, string additionalString = "")
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine($"Bank: {bank}");
             Console.ResetColor();
             Console.WriteLine($"Your money: {listOfPlayers[0].Monets}\n");
 
-            if(x)
+            if(!string.IsNullOrEmpty(additionalString))
+                Console.WriteLine(additionalString);
+
+            if (x)
                 listOfPlayers[0].ShowDeck();
         }
         private static Dictionary<Player, bool> ActivePlayersToDictionary()
@@ -350,7 +358,7 @@ namespace Poker
 
             return activePlayers;
         }
-        private static async Task RandomPlayerChoose(Dictionary<Player, (int, int)> cursor, bool raise, int lvl)
+        private static async Task RandomPlayerChoose(Dictionary<Player, (int, int)> cursor, bool raise, int lvl = 0, int amount = 0)
         {
             Dictionary<Player, bool> activePlayers = ActivePlayersToDictionary();
             var cords = Console.GetCursorPosition();
@@ -379,7 +387,16 @@ namespace Poker
 
                 string move;
                 if(raise)
-                    move = listOfPlayers.Where(x => x.Name == name).First().RaiseOption();
+                {
+                    Move callOrPass = listOfPlayers.Where(x => x.Name == name).First().CallOrPass(amount);
+                    move = callOrPass.ToString();
+
+                    if (callOrPass == Move.Call)
+                        listOfPlayers.Where(x => x.Name == name).First().RaiseMoney(amount);
+                    else
+                        listOfPlayers.Remove(listOfPlayers.Where(x => x.Name == name).First());
+
+                }
                 else
                 {
                     move = listOfPlayers.Where(x => x.Name == name).First().ChooseMoveForComputer(lvl);

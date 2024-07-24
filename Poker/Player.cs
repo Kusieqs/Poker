@@ -38,8 +38,8 @@ namespace Poker
         } // Showing your deck
         public void RaiseMoney(int amount)
         {
-            if (amount > Monets)
-                throw new FormatException();
+            if(amount > Monets)
+                amount = Monets;
 
             TexasHoldem.bank += amount;
             Monets -= amount;
@@ -196,16 +196,55 @@ namespace Poker
                 }
             }
         } // Logic for computer to choose move ( additionals cards on table)
-        public string RaiseOption()
+        public Move CallOrPass(int amount)
         {
+            // Adding the highest hand rank
             HandRank handRank = PokerHandEvaluator.CheckHand(this);
 
-            int valueOfCards = (int)Deck[0].Rank + (int)Deck[1].Rank;
+            // Random value for computer
+            Random random = new Random();
+            int value = random.Next(1, 11);
+
+
+            double procentOfMonets;
+            if (amount < Monets)
+                procentOfMonets = Math.Round((double)(amount/Monets),2);
+            else
+                procentOfMonets = 1;
+
+
+            if (procentOfMonets <= 1 && procentOfMonets >= 0.66)
+            {
+                if ((int)handRank >= 5 && (int)handRank <= 10)
+                    return Move.Call;
+                else
+                    return Bluff(value);
+            }
+            else if (procentOfMonets <= 0.65 && procentOfMonets >= 0.33)
+            {
+                if ((int)handRank >= 3 && (int)handRank <= 10)
+                    return Move.Call;
+                else
+                    return Bluff(value);
+            }
+            else
+            {
+                if ((int)handRank >= 1 && (int)handRank <= 10)
+                    return Move.Call;
+                else
+                    return Bluff(value);
+            }
 
             // komputer najpierw wybeira czy chce blefowac teraaz czy nie/ jesli chce t ogra na wiekwszym ryzyku a jesli nie to na mniejszym i wieksze prawdopodobienstwo spasowania
             // metoda ktora bedzie nam mowic czy komputer chce grac dalej czy nie Call/Pass
-
-            return "Test";
+            
+        }
+        private Move Bluff(int value)
+        {
+            if (value >= 7)
+                return Move.Call;
+            else
+                return Move.Pass;
         }
         public static void CreatingDeck()
         {
