@@ -17,14 +17,10 @@ namespace Poker
         public static List<Card> cardsOnTable = new List<Card>(); // cards on the table
         public static int bank; // bank amount
         private static bool chooseOption;
-        public static void Game(int players, int monets, string name)
+        public static void Game(List<Player> players)
         {
-            // adding new players to game
-            for (int i = 0; i < players + 1; i++)
-            {
-                Player player = new Player(monets, i == 0 ? true : false, 2, i == 0 ? name : $"Player {i}");
-                listOfPlayers.Add(player);
-            }
+            // Players added to main list
+            listOfPlayers = players;
 
             // Engine of game
             EngineOfGame();
