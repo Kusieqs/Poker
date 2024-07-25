@@ -234,10 +234,6 @@ namespace Poker
                 else
                     return Bluff(value);
             }
-
-            // komputer najpierw wybeira czy chce blefowac teraaz czy nie/ jesli chce t ogra na wiekwszym ryzyku a jesli nie to na mniejszym i wieksze prawdopodobienstwo spasowania
-            // metoda ktora bedzie nam mowic czy komputer chce grac dalej czy nie Call/Pass
-            
         }
         private Move Bluff(int value)
         {

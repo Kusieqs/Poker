@@ -209,9 +209,7 @@ namespace Poker
             var cords = Console.GetCursorPosition();
 
             // Async methods 
-            var userMove = GetUserMoveAsync();
-            var computerMove = GetComputerMoveAsync(lvl,cursor);
-            Task.WhenAll(userMove, computerMove).Wait();
+            Task.WhenAll(GetUserMoveAsync(), GetComputerMoveAsync(lvl, cursor)).Wait();
             Console.SetCursorPosition(0, cords.Top+2);
             Console.WriteLine("Click enter to continue");
             Console.ReadKey();
@@ -325,6 +323,8 @@ namespace Poker
                 Console.Clear();
                 BankShow();
 
+                Console.WriteLine("\n1. Pass\n2. Call\n\n");
+
                 foreach (Player player in listOfPlayers)
                 {
                     if (!player.IsPlayer && player.IsPlaying)
@@ -334,6 +334,8 @@ namespace Poker
                         Console.WriteLine("\n");
                     }
                 }
+                Console.Write("Your move: ");
+                var cords = Console.GetCursorPosition();
 
 
                 HandRank handRank = PokerHandEvaluator.CheckHand(listOfPlayers.Where(x => x.FirstRaised).First());
@@ -348,15 +350,16 @@ namespace Poker
 
                 Thread.Sleep(2000);
 
-                Player player1 = listOfPlayers.Where(x => x.FirstRaised).FirstOrDefault();
-                Console.SetCursorPosition(cursor[player1].Item1, cursor[player1].Item2);
+                Player computer = listOfPlayers.Where(x => x.FirstRaised).FirstOrDefault();
+                Console.SetCursorPosition(cursor[computer].Item1, cursor[computer].Item2);
 
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"Raised {monets} monets!");
                 listOfPlayers.Where(x => x.FirstRaised).FirstOrDefault().RaiseMoney(monets);
                 Console.ResetColor();
-                Console.ReadKey();
 
+                Task.WhenAll(PlayerCallOrPass(monets), ComputerCallOrPass(cords, cursor, monets)).Wait();
+                Console.ReadKey();
                 // Metoda do podania danej liczby na podbicie, ( musi to jakos miec korelacje z tym jaki ma dekc) // async -> Call/Pass
 
             }
@@ -442,6 +445,80 @@ namespace Poker
                 if (!chooseOption)
                     Console.SetCursorPosition(cords.Item1, cords.Item2);
             }
+        }
+        private static Task PlayerCallOrPass(int amount)
+        {
+            return Task.Run(() =>
+            {
+                do
+                {
+                    ConsoleKeyInfo key = Console.ReadKey(intercept : true);
+
+                    if(int.TryParse(key.KeyChar.ToString(), out int result) && result <= 2 && result >= 1)
+                    {
+                        listOfPlayers[0].LastMove = (Move)(result + 2);
+
+                        if (listOfPlayers[0].LastMove == Move.Call)
+                            listOfPlayers[0].RaiseMoney(amount);
+
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.Write(listOfPlayers[0].LastMove.ToString());
+                        Console.ResetColor();
+                        break;
+                    }
+
+                } while (true);
+            });
+        }
+        private static Task ComputerCallOrPass((int,int) cords, Dictionary<Player, (int, int)> cursor, int amount)
+        {
+            return Task.Run( async () =>
+            {
+                Dictionary<Player, bool> activePlayers = new Dictionary<Player, bool>();
+
+                for(int i = 1; i < listOfPlayers.Count; i++)
+                {
+                    if (!listOfPlayers[i].FirstRaised && listOfPlayers[i].IsPlaying)
+                        activePlayers.Add(listOfPlayers[i], false);
+                }
+
+                for (int i = 0; i < listOfPlayers.Where(x => !x.IsPlayer && !x.FirstRaised && x.IsPlaying).Count(); i++)
+                {
+                    Random random = new Random();
+                    Player player = null;
+                    string name;
+                    while (true)
+                    {
+                        int indexOfPlayer = random.Next(0, activePlayers.Count);
+                        player = activePlayers.Keys.ElementAt(indexOfPlayer);
+
+                        if (activePlayers[player] == true)
+                            continue;
+                        else
+                        {
+                            activePlayers[player] = true;
+                            name = player.Name;
+                            break;
+                        }
+                    }
+                    await Task.Delay(random.Next(1000, 5000));
+
+                    Move callOrPass = listOfPlayers.Where(x => x.Name == name).First().CallOrPass(amount);
+                    string move = callOrPass.ToString();
+
+                    if (callOrPass == Move.Call)
+                        listOfPlayers.Where(x => x.Name == name).First().RaiseMoney(amount);
+                    else
+                        listOfPlayers.Remove(listOfPlayers.Where(x => x.Name == name).First());
+
+                    Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
+                    Console.ForegroundColor = ConsoleColor.DarkGreen;
+                    Console.Write($"{move}");
+                    Console.ResetColor();
+
+                    Console.SetCursorPosition(cords.Item1, cords.Item2);
+                }
+            });
         }
         private static int StrongCall(double procent, int monets)
         {
