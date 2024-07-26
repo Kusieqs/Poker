@@ -1,6 +1,7 @@
 ﻿using Poker;
 using System.ComponentModel;
 using System.Xml.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 internal class Program
 {
@@ -8,45 +9,58 @@ internal class Program
     {
         // Setting name for a main player
         string name = NickName();
-        Console.Clear();
 
         // FALSE - Five-card
         // TRUE - Texas holdem
         bool mode = WhichMode();
-        Console.Clear();
 
         // choosing how many players do you want
         int players = HowManyPlayers();
-        Console.Clear();
 
         // Choosing lvl of players
         List<Player> listOfPlayers = LevelOfGame(players, name, mode);
         Console.Clear();
 
-        
         if (mode)
             TexasHoldem.Game(listOfPlayers);
     }
 
+    private static string NickName()
+    {
+        string name;
+        while(true)
+        {
+            Console.Clear();
+            Console.Write("Nickname: ");
+            name = Console.ReadLine();
+
+            if (!string.IsNullOrEmpty(name) && name.Length <= 20)
+                return name;
+        }
+    } // Choosing nickname for a main player
+    private static bool WhichMode()
+    {
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("Choose which mode do you want to play\n1 - Texas Holdem\n2 - Five-card Draw");
+            Console.Write("\nMode: ");
+            ConsoleKeyInfo keyInfo = Console.ReadKey();
+            if (keyInfo.KeyChar == '1' || keyInfo.KeyChar == '2')
+                return (int)keyInfo.KeyChar == 1;
+        }
+    } // Choosing which game do you want to play
     private static int HowManyPlayers() 
     {
         while (true)
         {
-            try
-            {
-                Console.WriteLine("How many players do you want to play with? (1 - 5)\n");
-                Console.Write("Number: ");
-                int players = int.Parse(Console.ReadLine());
+            Console.Clear();
+            Console.WriteLine("How many players do you want to play with? (1 - 5)\n");
+            Console.Write("Number: ");
+            ConsoleKeyInfo keyInfo = Console.ReadKey();
 
-                if (players > 0 && players < 6)
-                    return players;
-                else
-                    throw new FormatException();
-            }
-            catch (Exception)
-            {
-                ExceptionString();
-            }
+            if (int.TryParse(keyInfo.KeyChar.ToString(), out int number) && number >= 1 && number <= 5)
+                return number;
         }
     } // Choosing how many players do you want in game
     private static List<Player> LevelOfGame(int players, string name, bool mode)
@@ -54,129 +68,78 @@ internal class Program
         List<Player> list = new List<Player>();
         while (true)
         {
-            try
-            {
-                Console.Clear();
-                Console.Write("Choose level of game\n\n1. Easy\n2. Normal\n3. Hard\n\nOption: ");
-                Random random = new Random();
-                ConsoleKeyInfo consoleKeyInfo = Console.ReadKey(intercept: true);
-                int mainMoney;
+            Console.Clear();
+            Console.Write("Choose level of game\n\n1. Easy\n2. Normal\n3. Hard\n\nOption: ");
+            Random random = new Random();
+            ConsoleKeyInfo consoleKeyInfo = Console.ReadKey(intercept: true);
+            int mainMoney;
 
-                switch (consoleKeyInfo.KeyChar)
+            switch (consoleKeyInfo.KeyChar)
+            {
+                case '1':
+                    mainMoney = 500;
+                    break;
+                case '2':
+                    mainMoney = 1000;
+                    break;
+                case '3':
+                    mainMoney = 650;
+                    break;
+                default:
+                    continue;
+            }
+
+            list.Add(new Player(mainMoney, true, (mode == true ? 2 : 5), name));
+            Console.Clear();
+
+            for(int i = 1; i <= players; i++)
+            {
+                switch(consoleKeyInfo.KeyChar)
                 {
                     case '1':
-                        mainMoney = 500;
+                        mainMoney = (random.Next(200,401)/10) * 10;
                         break;
                     case '2':
                         mainMoney = 1000;
                         break;
                     case '3':
-                        mainMoney = 650;
+                        mainMoney = (random.Next(500, 1200)/10) * 10;
                         break;
-                    default:
-                        continue;
                 }
-
-                list.Add(new Player(mainMoney, true, (mode == true ? 2 : 5), name));
-
-                Console.Clear();
-
-                for(int i = 1; i <= players; i++)
-                {
-                    switch(consoleKeyInfo.KeyChar)
-                    {
-                        case '1':
-                            mainMoney = (random.Next(200,401)/10) * 10;
-                            break;
-                        case '2':
-                            mainMoney = 1000;
-                            break;
-                        case '3':
-                            mainMoney = (random.Next(500, 1200)/10) * 10;
-                            break;
-                    }
-                    list.Add(new Player(mainMoney, false, (mode == true ? 2 : 5), $"Player {i}"));
-                }
-
-                bool loop = true;
-                while (true)
-                {
-                    for(int j = 0; j < list.Count; j++)
-                    {
-                        if(j != 0 && loop)
-                            Thread.Sleep(1000);
-
-                        Console.Write($"{list[j].Name} ");
-                        Console.ForegroundColor = ConsoleColor.DarkGreen;
-                        Console.WriteLine($"Monets: {list[j].Monets}");
-                        Console.ResetColor();
-                    }
-
-                    Console.WriteLine("\n\nDo you accepting amount of monets?\n\n1. Yes\n2. No");
-                    consoleKeyInfo = Console.ReadKey(intercept: true);
-                    if (consoleKeyInfo.KeyChar == '1')
-                        return list;
-                    else if (consoleKeyInfo.KeyChar == '2')
-                    {
-                        list.Clear();
-                        break;
-                    }
-
-                    loop = false;
-                    Console.Clear();
-                }
-
+                list.Add(new Player(mainMoney, false, (mode == true ? 2 : 5), $"Player {i}"));
             }
-            catch (Exception)
+
+            bool loop = true;
+            while (true)
             {
-                ExceptionString();
-                continue;
+                for(int j = 0; j < list.Count; j++)
+                {
+                    if(j != 0 && loop)
+                        Thread.Sleep(1000);
+
+                    Console.Write($"{list[j].Name} ");
+                    Console.ForegroundColor = ConsoleColor.DarkGreen;
+                    Console.WriteLine($"Monets: {list[j].Monets}");
+                    Console.ResetColor();
+                }
+
+                Console.Write("\n\nDo you accepting amount of monets?\n\n1. Yes\n2. No\n\nOption: ");
+                consoleKeyInfo = Console.ReadKey(intercept: true);
+                if (consoleKeyInfo.KeyChar == '1')
+                    return list;
+                else if (consoleKeyInfo.KeyChar == '2')
+                {
+                    list.Clear();
+                    break;
+                }
+
+                loop = false;
+                Console.Clear();
             }
+
+            
         }
     } // Choosing how many monets do you want
-    private static string NickName()
-    {
-        string name;
-        while(true)
-        {
-            try
-            {
-                Console.Clear();
-                Console.Write("Nickname: ");
-                name = Console.ReadLine();
-                if (string.IsNullOrEmpty(name))
-                    throw new FormatException("Name is empty");
-                else if (name.Length > 25)
-                    throw new FormatException("Name is to long");
-
-                return name;
-            }
-            catch (Exception ex)
-            {
-                ExceptionString(ex.Message);
-            }
-        }
-    } // Choosing nickname for a main player
-    private static bool WhichMode()
-    {
-        while (true)
-        {
-            try
-            {
-                Console.WriteLine("Choose which mode do you want to play\n1 - Texas Holdem\n2 - Five-card Draw");
-                Console.Write("\nMode: ");
-                int mode = int.Parse(Console.ReadLine());
-                if (mode > 0 && mode < 3)
-                    return mode == 1;
-                else
-                    throw new FormatException();
-            }
-            catch (Exception)
-            {
-                ExceptionString();
-            }
-        }
-    } // Choosing which game do you want to play
     public static void ExceptionString(string exception = "")
     {
         Console.WriteLine();
