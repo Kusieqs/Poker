@@ -38,8 +38,11 @@ namespace Poker
         } // Showing your deck
         public void RaiseMoney(int amount)
         {
-            if(amount > Monets)
+            if (amount > Monets)
+            {
                 amount = Monets;
+                LastMove = Move.AllIn;
+            }    
 
             TexasHoldem.bank += amount;
             Monets -= amount;

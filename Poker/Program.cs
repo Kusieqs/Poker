@@ -1,7 +1,4 @@
 ﻿using Poker;
-using System.ComponentModel;
-using System.Xml.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 internal class Program
 {
@@ -24,7 +21,6 @@ internal class Program
         if (mode)
             TexasHoldem.Game(listOfPlayers);
     }
-
     private static string NickName()
     {
         string name;
@@ -46,8 +42,8 @@ internal class Program
             Console.WriteLine("Choose which mode do you want to play\n1 - Texas Holdem\n2 - Five-card Draw");
             Console.Write("\nMode: ");
             ConsoleKeyInfo keyInfo = Console.ReadKey();
-            if (keyInfo.KeyChar == '1' || keyInfo.KeyChar == '2')
-                return (int)keyInfo.KeyChar == 1;
+            if (int.TryParse(keyInfo.KeyChar.ToString(), out int result) && result == 1 || result == 2)
+                return result == 1;
         }
     } // Choosing which game do you want to play
     private static int HowManyPlayers() 
@@ -112,6 +108,7 @@ internal class Program
             bool loop = true;
             while (true)
             {
+                Console.WriteLine("Players:\n\n");
                 for(int j = 0; j < list.Count; j++)
                 {
                     if(j != 0 && loop)
@@ -119,7 +116,7 @@ internal class Program
 
                     Console.Write($"{list[j].Name} ");
                     Console.ForegroundColor = ConsoleColor.DarkGreen;
-                    Console.WriteLine($"Monets: {list[j].Monets}");
+                    Console.WriteLine($"Monets: {list[j].Monets}\n");
                     Console.ResetColor();
                 }
 
@@ -136,17 +133,6 @@ internal class Program
                 loop = false;
                 Console.Clear();
             }
-
-            
         }
     } // Choosing how many monets do you want
-    public static void ExceptionString(string exception = "")
-    {
-        Console.WriteLine();
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine(exception == "" ? "Wrong number or format" : exception);
-        Console.ResetColor();
-        Console.ReadKey();
-        Console.Clear();
-    } // Excpetion information
 }

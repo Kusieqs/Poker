@@ -29,12 +29,12 @@ namespace Poker
         }
         public static void EngineOfGame()
         {
+            Console.Clear();
             // Game engine
             do
             {
                 // Setting that everybody will play
                 SettingWhichPlayerWillPlay(true);
-                Console.Clear();
 
                 // Checking whether our player is enable to play
                 bool IsPlaying = StartRoundMenu();
@@ -59,6 +59,10 @@ namespace Poker
                 Console.WriteLine("Your Deck\n");
                 listOfPlayers.Where(x => x.IsPlayer).First().ShowDeck();
 
+                // ###############################################
+                // ###############################################
+
+
                 // Croupier deals 3 cards on the table
                 Console.WriteLine("Cards putted by croupier\n");
                 Card card;
@@ -69,8 +73,6 @@ namespace Poker
                 }
                 Card.DrawCardOnTable(cardsOnTable,2000);
 
-                // ###############################################
-                // ###############################################
                 // Croupier deals 1 card on the table
                 for (int i = 0; i < 2; i++)
                 {
@@ -96,52 +98,60 @@ namespace Poker
 
             } while (true);
         } // Engine of the game
+        private static void SettingWhichPlayerWillPlay(bool isPlaying = false)
+        {
+            foreach (Player player in listOfPlayers)
+            {
+                if (!isPlaying && player.LastMove == Move.Pass)
+                    player.IsPlaying = false;
+
+                if (isPlaying)
+                    player.LastMove = Move.Fold;
+            }
+        } // Setting which player is enable to play
         public static bool StartRoundMenu()
         {
-            int choose = 0;
             do
             {
+                // choosing option
                 Console.Clear();
-                try
-                {
-                    // choosing option
-                    Console.WriteLine("1. Play (Raise 30 moents to enabled to play)\n2. Exit");
-                    Console.Write("\nNumber: ");
-                    choose = int.Parse(Console.ReadLine());
-                    if (choose == 1)
-                    {
-                        // Checking our player that he has got 50 monets in pocket
-                        if (listOfPlayers.Where(x => x.IsPlayer == true).First().Monets - 30 < 0)
-                            throw new FormatException("You dont have enough monets to play!");
+                BankShow(false);
+                Console.WriteLine();
 
-                        // Taking money from pocket to bank
-                        foreach (Player player in listOfPlayers)
+                foreach (Player player in listOfPlayers)
+                {
+                    if (player.IsPlayer)
+                        continue;
+
+                    Console.WriteLine($"{player.Name} Monets: {player.Monets}\n");
+                }
+
+                Console.WriteLine("\n\n1. Play (Raise 30 monets to enabled to play)\n2. Exit");
+                Console.Write("\nNumber: ");
+                ConsoleKeyInfo choose = Console.ReadKey();
+                if (choose.KeyChar.ToString() == "1")
+                {
+                    // Checking our player that he has got 30 monets in pocket
+                    if (listOfPlayers.Where(x => x.IsPlayer == true).First().Monets - 30 < 0)
+                        continue;
+
+                    // Taking money from pocket to bank
+                    foreach (Player player in listOfPlayers)
+                    {
+                        if (player.Monets - 30 < 0)
                         {
-                            if (player.Monets - 30 < 0)
-                            {
-                                listOfPlayers.Remove(player);
-                                continue;
-                            }
-                            player.RaiseMoney(30);
+                            player.IsPlaying = false;
+                            continue;
                         }
-
-                        return true;
-
+                        player.RaiseMoney(30);
                     }
-                    else if (choose == 2)
-                    {
-                        // Exit from table
-                        bank = 0;
-                        return false;
-                    }
-                    else
-                        throw new FormatException("");
+                    return true;
                 }
-                catch (Exception ex)
+                else if (choose.KeyChar.ToString() == "2")
                 {
-                    Program.ExceptionString(ex.Message);
+                    // Exit from table
+                    return false;
                 }
-
 
             } while (true);
 
@@ -157,13 +167,16 @@ namespace Poker
                 player.RaiseCard();
 
                 if (player.IsPlayer)
+                {
                     player.ShowDeck();
+                    Console.WriteLine();
+                }
                 else
                 {
                     Console.Write(player.Name);
                     Thread.Sleep(1300);
                     Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine(" is ready!");
+                    Console.WriteLine(" is ready!\n");
                     Console.ResetColor();
                     ++i;
                 }
@@ -174,22 +187,14 @@ namespace Poker
         private static void OptionsInGame(bool option, int lvl)
         {
             Console.Clear();
-
-            // Menu for player
-
-            string whichOption = option == true ? "Wait" : "Check"; 
-            string options = $"\nOptions:\n\n1 - Raise\n2 - {whichOption}\n3 - Pass \n\n";
-
             BankShow();
+            Dictionary<Player, (int, int)> cursor = new Dictionary<Player, (int, int)>();
            
             if(cardsOnTable.Count != 0)
             {
                 Console.WriteLine("Cards on table:");
                 Card.DrawCardOnTable(cardsOnTable);
             }
-
-            Console.WriteLine(options);
-            Dictionary<Player, (int, int)> cursor = new Dictionary<Player, (int, int)>();
 
             foreach(Player player in listOfPlayers)
             {
@@ -201,6 +206,11 @@ namespace Poker
                 }
             }
 
+            // Menu for player
+            string whichOption = option == true ? "Wait" : "Check";
+            string options = $"\nOptions:\n\n1 - Raise\n2 - {whichOption}\n3 - Pass \n\n";
+
+            Console.WriteLine(options);
             Console.Write("Your move: ");
             var cords = Console.GetCursorPosition();
 
@@ -249,7 +259,7 @@ namespace Poker
                     if (listOfPlayers.All(x => !x.FirstRaised) && Move.Raise == moveEnum)
                         listOfPlayers[0].FirstRaised = true;
 
-                    listOfPlayers[0].LastMove = (Move)(consoleKeyInfo.KeyChar - 1);
+                    listOfPlayers[0].LastMove = (Move)(consoleKeyInfo.KeyChar);
                     break;
                 }
             });
@@ -261,17 +271,6 @@ namespace Poker
                 await RandomPlayerChoose(cursor, false,lvl);
             });
         } // Async method for computer
-        private static void SettingWhichPlayerWillPlay(bool isPlaying = false)
-        {
-            foreach (Player player in listOfPlayers)
-            {
-                if (!isPlaying && player.LastMove == Move.Pass)
-                    player.IsPlaying = false;
-
-                if (isPlaying)
-                    player.LastMove = Move.Fold;
-            }
-        } // Setting which player is enable to play
         private static void RaiseActivePlayers()
         {
             Dictionary<Player, (int, int)> cursor = new Dictionary<Player, (int, int)>();
@@ -293,23 +292,14 @@ namespace Poker
                         }
                     }
 
-                    try
-                    {
-                        Console.Write("Write amount of monets: ");
-                        amount = int.Parse(Console.ReadLine());
+                    Console.Write("Write amount of monets: ");
+                    amount = (int.Parse(Console.ReadLine()) / 10) * 10;
 
-                        if (listOfPlayers.Where(x => !x.IsPlayer).All(x => x.Monets < amount))
-                            amount = listOfPlayers.Where(x => !x.IsPlayer).Max(x => x.Monets);
+                    if (listOfPlayers.Where(x => !x.IsPlayer).All(x => x.Monets < amount))
+                        amount = listOfPlayers.Where(x => !x.IsPlayer).Max(x => x.Monets);
 
-
-                        listOfPlayers[0].RaiseMoney(amount);
-                        break;
-                    }   
-                    catch (Exception)
-                    {
-                        cursor.Clear();
-                        Program.ExceptionString();
-                    }
+                    listOfPlayers[0].RaiseMoney(amount);
+                    break;
                 }
                 RandomPlayerChoose(cursor, true, amount: amount);
                 Console.ReadKey();
@@ -351,17 +341,14 @@ namespace Poker
 
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"Raised {monets} monets!");
+                Console.SetCursorPosition(cords.Left, cords.Top);
                 listOfPlayers.Where(x => x.FirstRaised).FirstOrDefault().RaiseMoney(monets);
                 Console.ResetColor();
 
                 Task.WhenAll(PlayerCallOrPass(monets), ComputerCallOrPass(cords, cursor, monets)).Wait();
+                Console.WriteLine("\n\nClick enter to continue");
                 Console.ReadKey();
-                // Metoda do podania danej liczby na podbicie, ( musi to jakos miec korelacje z tym jaki ma dekc) // async -> Call/Pass
-
             }
-
-
-
         }
         private static void BankShow(bool x = true, string additionalString = "")
         {
@@ -505,13 +492,12 @@ namespace Poker
                     if (callOrPass == Move.Call)
                         listOfPlayers.Where(x => x.Name == name).First().RaiseMoney(amount);
                     else
-                        listOfPlayers.Remove(listOfPlayers.Where(x => x.Name == name).First());
+                        listOfPlayers.Where(x => x.Name == name).First().IsPlaying = false;
 
                     Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
                     Console.ForegroundColor = ConsoleColor.DarkGreen;
                     Console.Write($"{move}");
                     Console.ResetColor();
-
                     Console.SetCursorPosition(cords.Item1, cords.Item2);
                 }
             });
@@ -526,12 +512,12 @@ namespace Poker
             {
                 case 0.3:
                     if (probability >= 1 && probability <= 6)
-                        return random.Next(1, amount);
+                        return (random.Next(1, amount) / 10) * 10;
                     else
                         return amount;
                 case 0.6:
                     if (probability >= 1 && probability <= 6)
-                        return random.Next(1, amount);
+                        return (random.Next(1, amount) / 10) * 10;
                     else if (probability == 10)
                         return monets;
                     else
@@ -539,7 +525,7 @@ namespace Poker
 
                 case 1:
                     if (probability >= 1 && probability <= 6)
-                        return random.Next(1, amount);
+                        return (random.Next(1, amount) / 10) * 10;
                     else if (probability == 7 || probability == 8)
                         return monets;
                     else
