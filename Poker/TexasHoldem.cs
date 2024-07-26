@@ -259,7 +259,7 @@ namespace Poker
                     if (listOfPlayers.All(x => !x.FirstRaised) && Move.Raise == moveEnum)
                         listOfPlayers[0].FirstRaised = true;
 
-                    listOfPlayers[0].LastMove = (Move)(consoleKeyInfo.KeyChar);
+                    listOfPlayers[0].LastMove = (Move)(int.Parse(consoleKeyInfo.KeyChar.ToString()));
                     break;
                 }
             });
@@ -281,6 +281,7 @@ namespace Poker
                 {
                     Console.Clear();
                     BankShow();
+                    Console.WriteLine();
 
                     foreach (Player player in listOfPlayers)
                     {
@@ -292,8 +293,15 @@ namespace Poker
                         }
                     }
 
-                    Console.Write("Write amount of monets: ");
+                    Console.Write("\nWrite amount of monets (min 10 monets): ");
                     amount = (int.Parse(Console.ReadLine()) / 10) * 10;
+
+                    if (amount < 10)
+                    {
+                        cursor.Clear();
+                        continue;
+                    }
+                        
 
                     if (listOfPlayers.Where(x => !x.IsPlayer).All(x => x.Monets < amount))
                         amount = listOfPlayers.Where(x => !x.IsPlayer).Max(x => x.Monets);
@@ -505,33 +513,41 @@ namespace Poker
         private static int StrongCall(double procent, int monets)
         {
             Random random = new Random();
-            int amount = (int)Math.Round(monets * procent);
+            int amount = (int)Math.Round(((monets * procent)/10)*10);
             int probability = random.Next(1, 11);
-
-            switch (procent)
+            do
             {
-                case 0.3:
-                    if (probability >= 1 && probability <= 6)
-                        return (random.Next(1, amount) / 10) * 10;
-                    else
-                        return amount;
-                case 0.6:
-                    if (probability >= 1 && probability <= 6)
-                        return (random.Next(1, amount) / 10) * 10;
-                    else if (probability == 10)
-                        return monets;
-                    else
-                        return amount;
+                int raise = 0;
+                switch (procent)
+                {
+                    case 0.3:
+                        if (probability >= 1 && probability <= 6)
+                            raise = (random.Next(1, amount) / 10) * 10;
+                        else
+                            raise = amount;
+                        break;
+                    case 0.6:
+                        if (probability >= 1 && probability <= 6)
+                            raise = (random.Next(1, amount) / 10) * 10;
+                        else if (probability == 10)
+                            raise = monets;
+                        else
+                            raise = amount;
+                        break;
+                    case 1:
+                        if (probability >= 1 && probability <= 6)
+                            raise = (random.Next(1, amount) / 10) * 10;
+                        else if (probability == 7 || probability == 8)
+                            raise = monets;
+                        else
+                            raise = amount;
+                        break;
+                }
 
-                case 1:
-                    if (probability >= 1 && probability <= 6)
-                        return (random.Next(1, amount) / 10) * 10;
-                    else if (probability == 7 || probability == 8)
-                        return monets;
-                    else
-                        return amount;
-            }
-            return 0;
+                if (raise >= 10)
+                    return raise;
+
+            } while (true);
 
         }
 
