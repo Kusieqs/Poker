@@ -16,6 +16,7 @@ namespace Poker
         public int Monets { get; set; }
         public bool IsPlayer { get; private set; }
         public bool IsPlaying { get; set; } = true;
+        public bool FirstRaised { get; set; } = false;
         public Move LastMove { get; set; }
         public Card[] Deck { get; set; }
 
@@ -31,11 +32,18 @@ namespace Poker
             Console.WriteLine("Your deck: ");
             for (int i = 0; i < Deck.Length;i++)
             {
-                Console.WriteLine(Deck[i].DrawCard());
+                Deck[i].DrawCard();
             }
+            Console.WriteLine();
         } // Showing your deck
         public void RaiseMoney(int amount)
         {
+            if (amount > Monets)
+            {
+                amount = Monets;
+                LastMove = Move.AllIn;
+            }    
+
             TexasHoldem.bank += amount;
             Monets -= amount;
         } // Raise money to bank and also taking from pocket
@@ -59,7 +67,7 @@ namespace Poker
             int valueOfCards = (int)Deck[0].Rank + (int)Deck[1].Rank;
 
             // Choosing which move will computer take
-            if(lvl == 1)
+            if(lvl == 0)
                 LastMove = ChooseMove(handRank, value, valueOfCards);
             else
                 LastMove = ChooseMove(handRank, value, valueOfCards, lvl - 1);
@@ -191,6 +199,52 @@ namespace Poker
                 }
             }
         } // Logic for computer to choose move ( additionals cards on table)
+        public Move CallOrPass(int amount)
+        {
+            // Adding the highest hand rank
+            HandRank handRank = PokerHandEvaluator.CheckHand(this);
+
+            // Random value for computer
+            Random random = new Random();
+            int value = random.Next(1, 11);
+
+
+            double procentOfMonets;
+            if (amount < Monets)
+                procentOfMonets = Math.Round((double)(amount/Monets),2);
+            else
+                procentOfMonets = 1;
+
+
+            if (procentOfMonets <= 1 && procentOfMonets >= 0.66)
+            {
+                if ((int)handRank >= 5 && (int)handRank <= 10)
+                    return Move.Call;
+                else
+                    return Bluff(value);
+            }
+            else if (procentOfMonets <= 0.65 && procentOfMonets >= 0.33)
+            {
+                if ((int)handRank >= 3 && (int)handRank <= 10)
+                    return Move.Call;
+                else
+                    return Bluff(value);
+            }
+            else
+            {
+                if ((int)handRank >= 1 && (int)handRank <= 10)
+                    return Move.Call;
+                else
+                    return Bluff(value);
+            }
+        }
+        private Move Bluff(int value)
+        {
+            if (value >= 7)
+                return Move.Call;
+            else
+                return Move.Pass;
+        }
         public static void CreatingDeck()
         {
             var suits = Enum.GetValues(typeof(Suit));
@@ -228,10 +282,20 @@ namespace Poker
             Rank = rank;
         }
 
-        public string DrawCard()
+        public void DrawCard(ConsoleColor color = ConsoleColor.Magenta)
         {
-            return $"{Rank} {Suit}";
+            Console.ForegroundColor = color;
+            Console.WriteLine($"{Rank}\t{Suit}");
+            Console.ResetColor();
         } // draw card
+        public static void DrawCardOnTable(List<Card> listOfCards, int sleep = 0)
+        {
+            foreach(Card card in listOfCards)
+            {
+                Thread.Sleep(sleep);
+                card.DrawCard(ConsoleColor.DarkMagenta);
+            }
+        } // draw cards on the table
     }
 
 
