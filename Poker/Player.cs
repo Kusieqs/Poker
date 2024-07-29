@@ -16,7 +16,6 @@ namespace Poker
         public int Monets { get; set; }
         public bool IsPlayer { get; private set; }
         public bool IsPlaying { get; set; } = true;
-        public bool FirstRaised { get; set; } = false;
         public Move LastMove { get; set; }
         public Card[] Deck { get; set; }
 
@@ -237,14 +236,14 @@ namespace Poker
                 else
                     return Bluff(value);
             }
-        }
+        } // Feature to choose pass or call for computer
         private Move Bluff(int value)
         {
             if (value >= 7)
                 return Move.Call;
             else
                 return Move.Pass;
-        }
+        } // Method to choose bluff
         public static void CreatingDeck()
         {
             var suits = Enum.GetValues(typeof(Suit));
@@ -268,6 +267,13 @@ namespace Poker
                 gameDeck.Push(card);
             }
         } // Shuffle the deck
+        public static void SetFold()
+        {
+            for(int i = 0; i < TexasHoldem.listOfPlayers.Count; i++)
+            {
+                TexasHoldem.listOfPlayers[i].LastMove = Move.Fold;
+            }
+        }
 
 
     }
