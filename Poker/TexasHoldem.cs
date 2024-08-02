@@ -23,7 +23,7 @@ namespace Poker
             EngineOfGame();
 
             // END
-        }
+        } // Main Game
         public static void EngineOfGame()
         {
             Console.Clear();
@@ -115,11 +115,11 @@ namespace Poker
                 BankShow(false);
                 Console.WriteLine();
 
+                // Showing players
                 foreach (Player player in listOfPlayers)
                 {
                     if (player.IsPlayer)
                         continue;
-
                     Console.WriteLine($"{player.Name} Monets: {player.Monets}\n");
                 }
 
@@ -175,7 +175,7 @@ namespace Poker
         {
             Console.Clear();
             BankShow();
-            Dictionary<Player, (int, int)> cursor = new Dictionary<Player, (int, int)>();
+            Dictionary<Player, (int, int)> cursor = new Dictionary<Player, (int, int)>(); // Setting cords for cursor
            
             if(cardsOnTable.Count != 0)
             {
@@ -183,15 +183,7 @@ namespace Poker
                 Card.DrawCardOnTable(cardsOnTable);
             }
 
-            foreach(Player player in listOfPlayers)
-            {
-                if(!player.IsPlayer && player.IsPlaying)
-                {
-                    Console.Write($"{player.Name}\tMonets: {player.Monets}\tMove: ");
-                    cursor.Add(player, (Console.GetCursorPosition()));
-                    Console.WriteLine("\n");
-                }
-            }
+            ShowingPlayers(cursor); // Showing Players
 
             // Menu for player
             string whichOption = option == true ? "Wait" : "Check";
@@ -202,20 +194,22 @@ namespace Poker
             var cords = Console.GetCursorPosition();
 
             // Async methods 
-
             userToken = new CancellationTokenSource(); // Special token to delete user method
-            computerToken = new CancellationTokenSource(); 
+            computerToken = new CancellationTokenSource();  // Special token to delete Computer method
             Task.WhenAll(GetUserMoveAsync(), GetComputerMoveAsync(lvl, cursor)).Wait();
 
-            Console.ForegroundColor = ConsoleColor.DarkGreen;
+
+            // Poprawa tego 
+
+            Console.ForegroundColor = ConsoleColor.Green;
             if (firstRaise && listOfPlayers[0].LastMove != Move.Raise)
             {
-                Console.SetCursorPosition(cords.Left, cords.Top);
+                Console.SetCursorPosition(0, cords.Top + 1);
                 Console.WriteLine("Someone took raise \n\n");
             }
             else if(firstRaise)
             {
-                Console.SetCursorPosition(cords.Left, cords.Top);
+                Console.SetCursorPosition(0, cords.Top+1);
                 Console.WriteLine("You have to raise !\n\n");
 
             }
@@ -289,9 +283,9 @@ namespace Poker
         } // User Async method to choose move
         private static Task GetComputerMoveAsync(int lvl, Dictionary<Player, (int, int)> cursor)
         {
-            return Task.Run(() =>
+            return Task.Run( async () =>
             {
-                RandomPlayerChoose(cursor, false, lvl);
+                await RandomPlayerChoose(cursor, false, lvl);
             });
         } // Computer async method to choose move
         private static Task RandomPlayerChoose(Dictionary<Player, (int, int)> cursor, bool raise, int lvl = 0, int amount = 0)
@@ -325,21 +319,7 @@ namespace Poker
                             }
                         }
 
-                        string move;
-                        if (raise)
-                        {
-                            Move callOrPass = listOfPlayers.Where(x => x.Name == name).First().CallOrPass(amount);
-                            move = callOrPass.ToString();
-
-                            if (callOrPass == Move.Call)
-                                listOfPlayers.Where(x => x.Name == name).First().RaiseMoney(amount);
-                            else
-                                listOfPlayers.Where(x => x.Name == name).First().IsPlaying = false;
-                        }
-                        else
-                            move = listOfPlayers.Where(x => x.Name == name).First().ChooseMoveForComputer(lvl);
-
-
+                        string move = listOfPlayers.Where(x => x.Name == name).First().ChooseMoveForComputer(lvl);
                         Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
                         Console.ForegroundColor = ConsoleColor.DarkGreen;
                         Console.Write($"{move}");
@@ -354,7 +334,6 @@ namespace Poker
 
                         if (!chooseOption)
                             Console.SetCursorPosition(cords.Item1, cords.Item2);
-
                     }
                 }
                 catch (OperationCanceledException)
@@ -363,70 +342,99 @@ namespace Poker
                 }
             },token);
         }
+        private static void RaiseComputer(int amount, Dictionary<Player, (int,int)> cursor)
+        {
+            Dictionary<Player, bool> activePlayers = ActivePlayersToDictionary();
+            var cords = Console.GetCursorPosition();
+            Random random = new Random();
+
+            for (int i = 0; i < activePlayers.Count; i++)
+            {
+                Thread.Sleep(random.Next(2000, 5000));
+                Player player = null;
+                string name;
+                while (true)
+                {
+                    int indexOfPlayer = random.Next(0, activePlayers.Count);
+                    player = activePlayers.Keys.ElementAt(indexOfPlayer);
+
+                    if (activePlayers[player] == true)
+                        continue;
+                    else
+                    {
+                        activePlayers[player] = true;
+                        name = player.Name;
+                        break;
+                    }
+                }
+
+                Move callOrPass = listOfPlayers.Where(x => x.Name == name).First().CallOrPass(amount);
+                string move = callOrPass.ToString();
+
+                if (callOrPass == Move.Call)
+                    listOfPlayers.Where(x => x.Name == name).First().RaiseMoney(amount);
+                else
+                    listOfPlayers.Where(x => x.Name == name).First().IsPlaying = false;
+
+                Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.Write($"{move}");
+                Console.ResetColor();
+
+                if (!chooseOption)
+                    Console.SetCursorPosition(cords.Item1, cords.Item2);
+            }
+        }
         private static void RaiseActivePlayers()
         {
-            Dictionary<Player, (int, int)> cursor = new Dictionary<Player, (int, int)>();
-            int amount;
-            if (listOfPlayers[0].LastMove == Move.Raise)
+            Dictionary<Player, (int, int)> cursor = new Dictionary<Player, (int, int)>(); // Cords for place to write information
+            int amount; // Amount to raise
+            (int, int) cords; // Cords of user
+
+            if (listOfPlayers[0].LastMove == Move.Raise) // Raise for User
             {
                 while(true)
                 {
                     Console.Clear();
-                    BankShow();
+                    BankShow(); // Showing Bank
                     Console.WriteLine();
-
-                    foreach (Player player in listOfPlayers)
-                    {
-                        if (!player.IsPlayer && player.IsPlaying)
-                        {
-                            Console.Write($"{player.Name}\tMonets: {player.Monets}\tMove: ");
-                            cursor.Add(player, Console.GetCursorPosition());
-                            Console.WriteLine("\n");
-                        }
-                    }
+                    ShowingPlayers(cursor); // Showing players
 
                     Console.Write("\nWrite amount of monets (min 10 monets): ");
-                    amount = (int.Parse(Console.ReadLine()) / 10) * 10;
 
-                    if (amount < 10)
+                    cords = Console.GetCursorPosition();
+                    // Writing amount of monets
+                    if (int.TryParse(Console.ReadLine(), out amount) && amount >= 10)
+                        amount = (amount / 10) * 10;
+                    else
                     {
                         cursor.Clear();
                         continue;
                     }
                         
+                    // Setting amount 
+                    if (listOfPlayers.Where(x => !x.IsPlayer && x.IsPlaying).All(x => x.Monets < amount))
+                        amount = listOfPlayers.Where(x => !x.IsPlayer && x.IsPlaying).Max(x => x.Monets);
 
-                    if (listOfPlayers.Where(x => !x.IsPlayer).All(x => x.Monets < amount))
-                        amount = listOfPlayers.Where(x => !x.IsPlayer).Max(x => x.Monets);
-
+                    // Raise monets
                     listOfPlayers[0].RaiseMoney(amount);
                     break;
                 }
-                RandomPlayerChoose(cursor, true, amount: amount);
-                Console.ReadKey();
+                RaiseComputer(amount, cursor); // Random computer move 
             }
-            else
+            else // Raise money for computer
             {
                 Console.Clear();
-                BankShow();
-
+                BankShow(); // Bank Show
                 Console.WriteLine("\n1. Pass\n2. Call\n\n");
-
-                foreach (Player player in listOfPlayers)
-                {
-                    if (!player.IsPlayer && player.IsPlaying)
-                    {
-                        Console.Write($"{player.Name}\tMonets: {player.Monets}\tMove: ");
-                        cursor.Add(player, Console.GetCursorPosition());
-                        Console.WriteLine("\n");
-                    }
-                }
+                ShowingPlayers(cursor); // Showing Players
+                
                 Console.Write("Your move: ");
-                var cords = Console.GetCursorPosition();
+                cords = Console.GetCursorPosition(); // Setting cords
+                HandRank handRank = PokerHandEvaluator.CheckHand(listOfPlayers.Where(x => x.LastMove == Move.Raise).First()); // Hand rank for computer
+                int monets = listOfPlayers.Where(x => x.LastMove == Move.Raise).First().Monets; // Setting monets of computer
 
-
-                HandRank handRank = PokerHandEvaluator.CheckHand(listOfPlayers.Where(x => x.LastMove == Move.Raise).First());
-                int monets = listOfPlayers.Where(x => x.LastMove == Move.Raise).First().Monets;
-
+                // Setting call
                 if ((int)handRank >= 0 && (int)handRank <= 3)
                     monets = StrongCall(0.3, monets);
                 else if ((int)handRank >= 4 && (int)handRank <= 8)
@@ -434,20 +442,23 @@ namespace Poker
                 else
                     monets = StrongCall(1, monets);
 
+                // Sleep for 2 s
                 Thread.Sleep(2000);
 
                 Player computer = listOfPlayers.Where(x => x.LastMove == Move.Raise).FirstOrDefault();
-                Console.SetCursorPosition(cursor[computer].Item1, cursor[computer].Item2);
+                Console.SetCursorPosition(cursor[computer].Item1, cursor[computer].Item2); // Setting curosr position
 
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"Raised {monets} monets!");
-                Console.SetCursorPosition(cords.Left, cords.Top);
+                Console.WriteLine($"Raised {monets} monets!"); // Information about monets
+                Console.SetCursorPosition(cords.Item1, cords.Item2);
                 listOfPlayers.Where(x => x.LastMove == Move.Raise).FirstOrDefault().RaiseMoney(monets);
                 Console.ResetColor();
 
-                Task.WhenAll(PlayerCallOrPass(monets), ComputerCallOrPass(cords, cursor, monets)).Wait();
-                EnterPress();
+                Task.WhenAll(PlayerCallOrPass(monets), ComputerCallOrPass(cords, cursor, monets)).Wait(); // Call or pass for user and computer
             }
+
+            Console.SetCursorPosition(0, cords.Item2+2);
+            EnterPress();
         }
         private static void BankShow(bool x = true, string additionalString = "")
         {
@@ -477,7 +488,7 @@ namespace Poker
         {
             Task.Run(() =>
             {
-                while (!cts.Token.IsCancellationRequested)
+                while (!userToken.Token.IsCancellationRequested)
                 {
                     if (Console.KeyAvailable)
                     {
@@ -602,6 +613,7 @@ namespace Poker
         }
         private static void EnterPress()
         {
+            Console.ForegroundColor = ConsoleColor.DarkCyan;
             Console.WriteLine("Click Enter to continue");
             ConsoleKeyInfo consoleKeyInfo;
             do
@@ -610,7 +622,19 @@ namespace Poker
                 if (consoleKeyInfo.Key == ConsoleKey.Enter)
                     break;
             } while (true);
-
+            Console.ResetColor();
+        }
+        private static void ShowingPlayers(Dictionary<Player, (int,int)> cursor)
+        {
+            foreach (Player player in listOfPlayers)
+            {
+                if (!player.IsPlayer && player.IsPlaying)
+                {
+                    Console.Write($"{player.Name}\tMonets: {player.Monets}\tMove: ");
+                    cursor.Add(player, (Console.GetCursorPosition()));
+                    Console.WriteLine("\n");
+                }
+            }
         }
     }
 }
