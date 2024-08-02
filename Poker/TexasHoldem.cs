@@ -33,9 +33,6 @@ namespace Poker
                 // Setting fold for everyone
                 Player.SetFold();
 
-                // Setting that everybody will play
-                SettingWhichPlayerWillPlay(true);
-
                 // Checking whether our player is enable to play
                 bool IsPlaying = StartRoundMenu();
 
@@ -98,17 +95,6 @@ namespace Poker
                 Console.ReadKey();
             } while (true);
         } // Engine of the game
-        private static void SettingWhichPlayerWillPlay(bool isPlaying = false)
-        {
-            foreach (Player player in listOfPlayers)
-            {
-                if (!isPlaying && player.LastMove == Move.Pass)
-                    player.LastMove = Move.Pass;
-
-                if (isPlaying)
-                    player.LastMove = Move.Fold;
-            }
-        } // Setting which player is enable to play
         public static bool StartRoundMenu()
         {
             do
@@ -126,24 +112,24 @@ namespace Poker
                     Console.WriteLine($"{player.Name} Monets: {player.Monets}\n");
                 }
 
-                Console.WriteLine("\n\n1. Play (Raise 30 monets to enabled to play)\n2. Exit");
+                Console.WriteLine("\n\n1. Play (Raise 20 monets to enabled to play)\n2. Exit");
                 Console.Write("\nNumber: ");
                 ConsoleKeyInfo choose = Console.ReadKey();
                 if (choose.KeyChar.ToString() == "1")
                 {
                     // Checking our player that he has got 30 monets in pocket
-                    if (listOfPlayers.Where(x => x.IsPlayer == true).First().Monets - 30 < 0)
+                    if (listOfPlayers.Where(x => x.IsPlayer == true).First().Monets - 20 < 0)
                         continue;
 
                     // Taking money from pocket to bank
                     foreach (Player player in listOfPlayers)
                     {
-                        if (player.Monets - 30 < 0)
+                        if (player.Monets - 20 < 0)
                         {
                             player.LastMove = Move.Pass;
                             continue;
                         }
-                        player.RaiseMoney(30);
+                        player.RaiseMoney(20);
                     }
                     return true;
                 }
@@ -221,9 +207,6 @@ namespace Poker
 
             Console.ResetColor();
             EnterPress();
-
-            // Setting which player choosed pass
-            SettingWhichPlayerWillPlay();
 
             // Method to raise amount of money (if somebody choosed raise)
             if (listOfPlayers.Any(x => x.LastMove == Move.Raise && x.LastMove != Move.Pass))
