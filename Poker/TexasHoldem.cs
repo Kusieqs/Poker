@@ -30,6 +30,9 @@ namespace Poker
             // Game engine
             do
             {
+                // Setting fold for everyone
+                Player.SetFold();
+
                 // Setting that everybody will play
                 SettingWhichPlayerWillPlay(true);
 
@@ -56,10 +59,6 @@ namespace Poker
                 Console.WriteLine("Your Deck\n");
                 listOfPlayers.Where(x => x.IsPlayer).First().ShowDeck();
 
-                // ###############################################
-                // ###############################################
-
-
                 // Croupier deals 3 cards on the table
                 Console.WriteLine("Cards putted by croupier\n");
                 Card card;
@@ -69,6 +68,11 @@ namespace Poker
                     cardsOnTable.Add(card);
                 }
                 Card.DrawCardOnTable(cardsOnTable,2000);
+
+                // ###############################################
+                // ###############################################          
+                // ###############################################
+
 
                 // Croupier deals 1 card on the table
                 for (int i = 0; i < 2; i++)
@@ -92,7 +96,6 @@ namespace Poker
                 Card.DrawCardOnTable(cardsOnTable);
                 Console.WriteLine(handRank.ToString());
                 Console.ReadKey();
-
             } while (true);
         } // Engine of the game
         private static void SettingWhichPlayerWillPlay(bool isPlaying = false)
@@ -100,7 +103,7 @@ namespace Poker
             foreach (Player player in listOfPlayers)
             {
                 if (!isPlaying && player.LastMove == Move.Pass)
-                    player.IsPlaying = false;
+                    player.LastMove = Move.Pass;
 
                 if (isPlaying)
                     player.LastMove = Move.Fold;
@@ -137,7 +140,7 @@ namespace Poker
                     {
                         if (player.Monets - 30 < 0)
                         {
-                            player.IsPlaying = false;
+                            player.LastMove = Move.Pass;
                             continue;
                         }
                         player.RaiseMoney(30);
@@ -223,7 +226,7 @@ namespace Poker
             SettingWhichPlayerWillPlay();
 
             // Method to raise amount of money (if somebody choosed raise)
-            if (listOfPlayers.Any(x => x.LastMove == Move.Raise && x.IsPlaying))
+            if (listOfPlayers.Any(x => x.LastMove == Move.Raise && x.LastMove != Move.Pass))
                 RaiseActivePlayers();
 
             firstRaise = false;
@@ -374,7 +377,7 @@ namespace Poker
                 if (callOrPass == Move.Call)
                     listOfPlayers.Where(x => x.Name == name).First().RaiseMoney(amount);
                 else
-                    listOfPlayers.Where(x => x.Name == name).First().IsPlaying = false;
+                    listOfPlayers.Where(x => x.Name == name).First().LastMove = Move.Pass;
 
                 Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -413,8 +416,8 @@ namespace Poker
                     }
                         
                     // Setting amount 
-                    if (listOfPlayers.Where(x => !x.IsPlayer && x.IsPlaying).All(x => x.Monets < amount))
-                        amount = listOfPlayers.Where(x => !x.IsPlayer && x.IsPlaying).Max(x => x.Monets);
+                    if (listOfPlayers.Where(x => !x.IsPlayer && x.LastMove != Move.Pass).All(x => x.Monets < amount))
+                        amount = listOfPlayers.Where(x => !x.IsPlayer && x.LastMove != Move.Pass).Max(x => x.Monets);
 
                     // Raise monets
                     listOfPlayers[0].RaiseMoney(amount);
@@ -478,7 +481,7 @@ namespace Poker
             Dictionary<Player, bool> activePlayers = new Dictionary<Player, bool>();
             for (int i = 0; i < listOfPlayers.Count; i++)
             {
-                if (!listOfPlayers[i].IsPlayer && listOfPlayers[i].IsPlaying)
+                if (!listOfPlayers[i].IsPlayer && listOfPlayers[i].LastMove != Move.Pass)
                     activePlayers.Add(listOfPlayers[i], false);
             }
 
@@ -530,11 +533,11 @@ namespace Poker
 
                 for(int i = 1; i < listOfPlayers.Count; i++)
                 {
-                    if (listOfPlayers[i].LastMove != Move.Raise && listOfPlayers[i].IsPlaying)
+                    if (listOfPlayers[i].LastMove != Move.Raise && listOfPlayers[i].LastMove != Move.Pass)
                         activePlayers.Add(listOfPlayers[i], false);
                 }
 
-                for (int i = 0; i < listOfPlayers.Where(x => !x.IsPlayer && x.IsPlaying && x.LastMove != Move.Raise).Count(); i++)
+                for (int i = 0; i < listOfPlayers.Where(x => !x.IsPlayer && x.LastMove != Move.Pass && x.LastMove != Move.Raise).Count(); i++)
                 {
                     Random random = new Random();
                     Player player = null;
@@ -561,7 +564,7 @@ namespace Poker
                     if (callOrPass == Move.Call)
                         listOfPlayers.Where(x => x.Name == name).First().RaiseMoney(amount);
                     else
-                        listOfPlayers.Where(x => x.Name == name).First().IsPlaying = false;
+                        listOfPlayers.Where(x => x.Name == name).First().LastMove = Move.Pass;
 
                     Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
                     Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -628,7 +631,7 @@ namespace Poker
         {
             foreach (Player player in listOfPlayers)
             {
-                if (!player.IsPlayer && player.IsPlaying)
+                if (!player.IsPlayer && player.LastMove != Move.Pass)
                 {
                     Console.Write($"{player.Name}\tMonets: {player.Monets}\tMove: ");
                     cursor.Add(player, (Console.GetCursorPosition()));

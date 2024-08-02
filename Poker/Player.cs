@@ -15,7 +15,6 @@ namespace Poker
         public string Name { get; set; }
         public int Monets { get; set; }
         public bool IsPlayer { get; private set; }
-        public bool IsPlaying { get; set; } = true;
         public Move LastMove { get; set; }
         public Card[] Deck { get; set; }
 
@@ -273,7 +272,7 @@ namespace Poker
             {
                 TexasHoldem.listOfPlayers[i].LastMove = Move.Fold;
             }
-        }
+        } // Set fold for all players
 
 
     }
