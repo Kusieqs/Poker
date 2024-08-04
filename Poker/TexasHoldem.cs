@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Numerics;
+using System.Reflection;
 
 namespace Poker
 {
@@ -145,13 +147,16 @@ namespace Poker
         public static void DealCards()
         {
             BankShow(false, "Croupier deals the cards . . .\n");
-            Thread.Sleep(1500);
+            Thread.Sleep(2000);
             int i = 1;
 
             foreach (Player player in listOfPlayers)
             {
-                player.RaiseCard();
+                // Raising cards for active players
+                if(player.LastMove != Move.Pass)
+                    player.RaiseCard(); 
 
+                // Showing deck for player
                 if (player.IsPlayer)
                 {
                     player.ShowDeck();
@@ -173,37 +178,49 @@ namespace Poker
             }
 
             ShowingPlayers(cursor); // Showing Players
-
-            // Menu for player
             string whichOption = option == true ? "Wait" : "Check";
             string options = $"\nOptions:\n\n1 - Raise\n2 - {whichOption}\n3 - Pass \n\n";
+            (int, int) cords = (0, 0);
 
-            Console.WriteLine(options);
-            Console.Write("Your move: ");
-            var cords = Console.GetCursorPosition();
+            // Menu for player
+            switch(listOfPlayers[0].LastMove)
+            {
+                case Move.AllIn:
+                    Console.Write("Your move: ");
+                    cords = Console.GetCursorPosition();
+                    HandleUserAndComputerMoves(lvl, cursor).Wait();
+                    break;
 
-            // Async methods 
-            userToken = new CancellationTokenSource(); // Special token to delete user method
-            computerToken = new CancellationTokenSource();  // Special token to delete Computer method
-            Task.WhenAll(GetUserMoveAsync(), GetComputerMoveAsync(lvl, cursor)).Wait();
+                case Move.Pass:
+                    cords = Console.GetCursorPosition();
+                    GetComputerMoveAsync(lvl, cursor);
+                    break;
 
-
-            // Poprawa tego 
+                default:
+                    Console.WriteLine(options);
+                    Console.Write("Your move: ");
+                    cords = Console.GetCursorPosition();
+                    HandleUserAndComputerMoves(lvl, cursor).Wait();
+                    break;
+            }
 
             Console.ForegroundColor = ConsoleColor.Green;
             if (firstRaise && listOfPlayers[0].LastMove != Move.Raise)
             {
-                Console.SetCursorPosition(0, cords.Top + 1);
+                Console.SetCursorPosition(0, cords.Item2 + 1);
                 Console.WriteLine("Someone took raise \n\n");
             }
             else if(firstRaise)
             {
-                Console.SetCursorPosition(0, cords.Top+1);
+                Console.SetCursorPosition(0, cords.Item2 + 1);
                 Console.WriteLine("You have to raise !\n\n");
 
             }
             else
-                Console.SetCursorPosition(0, cords.Top + 2);
+                Console.SetCursorPosition(0, cords.Item2 + 2);
+
+
+            // ###
 
             Console.ResetColor();
             EnterPress();
@@ -221,14 +238,23 @@ namespace Poker
             CancellationToken token = userToken.Token;
             return Task.Run(() =>
             {
-                Move moveEnum;
                 while (true)
                 {
+                    if (listOfPlayers[0].LastMove == Move.AllIn)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.Write(Move.AllIn);
+                        Console.ResetColor();
+                        break;
+                    }
+
                     try
                     {
+                        Move moveEnum;
                         ConsoleKeyInfo consoleKeyInfo;
                         do
                         {
+
                             StartReadingKeys(); // Reading key if token is open
                             keyBuffer = new BlockingCollection<ConsoleKeyInfo>();
                             consoleKeyInfo = keyBuffer.Take(token);
@@ -281,9 +307,21 @@ namespace Poker
             {
                 try
                 {
-                    Dictionary<Player, bool> activePlayers = ActivePlayersToDictionary();
+                    Dictionary<Player, bool> activePlayers = ActivePlayersToDictionary(); // Setting active players and cords for them
                     var cords = Console.GetCursorPosition();
                     Random random = new Random();
+
+                    foreach(var dict in activePlayers)
+                    {
+                        if(dict.Key.LastMove == Move.AllIn)
+                        {
+                            Console.SetCursorPosition(cursor[dict.Key].Item1, cursor[dict.Key].Item2);
+                            Console.ForegroundColor = ConsoleColor.DarkGreen;
+                            Console.Write($"{Move.AllIn}");
+                            Console.ResetColor();
+                            activePlayers.Remove(dict.Key);
+                        }
+                    }
 
                     for (int i = 0; i < activePlayers.Count; i++)
                     {
@@ -328,6 +366,12 @@ namespace Poker
                 }
             },token);
         }
+        private static async Task HandleUserAndComputerMoves(int lvl, Dictionary<Player, (int, int)> cursor)
+        {
+            userToken = new CancellationTokenSource(); // Special token to delete user method
+            computerToken = new CancellationTokenSource();  // Special token to delete Computer method
+            await Task.WhenAll(GetUserMoveAsync(), GetComputerMoveAsync(lvl, cursor));
+        }
         private static void RaiseComputer(int amount, Dictionary<Player, (int,int)> cursor)
         {
             Dictionary<Player, bool> activePlayers = ActivePlayersToDictionary();
@@ -361,6 +405,7 @@ namespace Poker
                     listOfPlayers.Where(x => x.Name == name).First().RaiseMoney(amount);
                 else
                     listOfPlayers.Where(x => x.Name == name).First().LastMove = Move.Pass;
+
 
                 Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -467,7 +512,6 @@ namespace Poker
                 if (!listOfPlayers[i].IsPlayer && listOfPlayers[i].LastMove != Move.Pass)
                     activePlayers.Add(listOfPlayers[i], false);
             }
-
             return activePlayers;
         }
         private static void StartReadingKeys()

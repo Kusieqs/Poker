@@ -205,7 +205,7 @@ namespace Poker
             // Random value for computer
             Random random = new Random();
             int value = random.Next(1, 11);
-
+            Move move;
 
             double procentOfMonets;
             if (amount < Monets)
@@ -217,24 +217,30 @@ namespace Poker
             if (procentOfMonets <= 1 && procentOfMonets >= 0.66)
             {
                 if ((int)handRank >= 5 && (int)handRank <= 10)
-                    return Move.Call;
+                    move = Move.Call;
                 else
-                    return Bluff(value);
+                    move = Bluff(value);
             }
             else if (procentOfMonets <= 0.65 && procentOfMonets >= 0.33)
             {
                 if ((int)handRank >= 3 && (int)handRank <= 10)
-                    return Move.Call;
+                    move = Move.Call;
                 else
-                    return Bluff(value);
+                    move = Bluff(value);
             }
             else
             {
                 if ((int)handRank >= 1 && (int)handRank <= 10)
-                    return Move.Call;
+                    move = Move.Call;
                 else
-                    return Bluff(value);
+                    move = Bluff(value);
             }
+
+            if (procentOfMonets == 1 && move == Move.Call)
+                return Move.AllIn;
+
+            return move;
+
         } // Feature to choose pass or call for computer
         private Move Bluff(int value)
         {
