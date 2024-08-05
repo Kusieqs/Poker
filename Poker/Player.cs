@@ -36,7 +36,7 @@ namespace Poker
         } // Showing your deck
         public void RaiseMoney(int amount)
         {
-            if (amount > Monets)
+            if (amount >= Monets)
             {
                 amount = Monets;
                 LastMove = Move.AllIn;
@@ -276,7 +276,7 @@ namespace Poker
         {
             for(int i = 0; i < TexasHoldem.listOfPlayers.Count; i++)
             { 
-                if (!startRound && TexasHoldem.listOfPlayers[i].LastMove == Move.Pass)
+                if (!startRound && (TexasHoldem.listOfPlayers[i].LastMove == Move.Pass || TexasHoldem.listOfPlayers[i].LastMove == Move.AllIn))
                     continue;
 
                 TexasHoldem.listOfPlayers[i].LastMove = Move.Fold;
@@ -308,6 +308,7 @@ namespace Poker
                 Thread.Sleep(sleep);
                 card.DrawCard(ConsoleColor.DarkMagenta);
             }
+            Console.WriteLine("\n");
         } // draw cards on the table
     }
 

@@ -68,10 +68,6 @@ namespace Poker
                     cardsOnTable.Add(card);
                 }
                 Card.DrawCardOnTable(cardsOnTable,2000);
-                Console.WriteLine("\n");
-                // ###############################################
-                // ###############################################          
-                // ###############################################
 
                 // Croupier deals 1 card on the table
                 for (int i = 0; i < 2; i++)
@@ -186,9 +182,9 @@ namespace Poker
             switch(listOfPlayers[0].LastMove)
             {
                 case Move.AllIn:
-                    Console.Write("Your move: ");
+                    Console.Write($"Your move: {listOfPlayers[0].LastMove}");
                     cords = Console.GetCursorPosition();
-                    HandleUserAndComputerMoves(lvl, cursor).Wait();
+                    GetComputerMoveAsync(lvl, cursor).Wait();
                     break;
 
                 case Move.Pass:
@@ -492,14 +488,27 @@ namespace Poker
                 Console.WriteLine($"Raised {monets} monets!"); // Information about monets
                 Console.SetCursorPosition(cords.Item1, cords.Item2);
 
-                // Switch i podzielenie
-                Console.WriteLine("\n1. Pass\n2. Call\n\n");
-                Console.Write("Your move: ");
-                cords = Console.GetCursorPosition(); // Setting cords
-                listOfPlayers.Where(x => x.LastMove == Move.Raise).FirstOrDefault().RaiseMoney(monets);
-                Console.ResetColor();
-
-                Task.WhenAll(PlayerCallOrPass(monets), ComputerCallOrPass(cords, cursor, monets)).Wait(); // Call or pass for user and computer
+                switch(listOfPlayers[0].LastMove)
+                {
+                    case Move.AllIn:
+                        Console.Write($"Your move: {listOfPlayers[0].LastMove}");
+                        cords = Console.GetCursorPosition(); // Setting cords
+                        listOfPlayers.Where(x => x.LastMove == Move.Raise).FirstOrDefault().RaiseMoney(monets);
+                        Console.ResetColor();
+                        ComputerCallOrPass(cords, cursor, monets).Wait();
+                        break;
+                    case Move.Pass:
+                        ComputerCallOrPass(cords, cursor, monets).Wait();
+                        break;
+                    default:
+                        Console.WriteLine("\n1. Pass\n2. Call\n\n");
+                        Console.Write("Your move: ");
+                        cords = Console.GetCursorPosition(); // Setting cords
+                        listOfPlayers.Where(x => x.LastMove == Move.Raise).FirstOrDefault().RaiseMoney(monets);
+                        Console.ResetColor();
+                        Task.WhenAll(PlayerCallOrPass(monets), ComputerCallOrPass(cords, cursor, monets)).Wait(); // Call or pass for user and computer
+                        break;
+                }
                 Console.SetCursorPosition(0, cords.Item2 + 2);
             }
             EnterPress("Click Enter to continue       ");
