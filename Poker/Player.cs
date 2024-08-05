@@ -272,10 +272,13 @@ namespace Poker
                 gameDeck.Push(card);
             }
         } // Shuffle the deck
-        public static void SetFold()
+        public static void SetFold(bool startRound = false)
         {
             for(int i = 0; i < TexasHoldem.listOfPlayers.Count; i++)
-            {
+            { 
+                if (!startRound && TexasHoldem.listOfPlayers[i].LastMove == Move.Pass)
+                    continue;
+
                 TexasHoldem.listOfPlayers[i].LastMove = Move.Fold;
             }
         } // Set fold for all players
@@ -292,7 +295,6 @@ namespace Poker
             Suit = suit;
             Rank = rank;
         }
-
         public void DrawCard(ConsoleColor color = ConsoleColor.Magenta)
         {
             Console.ForegroundColor = color;
