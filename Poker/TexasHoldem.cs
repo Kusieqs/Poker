@@ -15,6 +15,7 @@ namespace Poker
         private static CancellationTokenSource userToken;
         private static CancellationTokenSource computerToken;
         private static BlockingCollection<ConsoleKeyInfo> keyBuffer;
+        private static (int, int) cords;
 
         public static void Game(List<Player> players)
         {
@@ -179,44 +180,22 @@ namespace Poker
             (int, int) cords = (0, 0);
 
             // Menu for player
-            switch(listOfPlayers[0].LastMove)
-            {
-                case Move.AllIn:
-                    Console.Write($"Your move: {listOfPlayers[0].LastMove}");
-                    cords = Console.GetCursorPosition();
-                    GetComputerMoveAsync(lvl, cursor).Wait();
-                    break;
-
-                case Move.Pass:
-                    cords = Console.GetCursorPosition();
-                    GetComputerMoveAsync(lvl, cursor).Wait();
-                    break;
-
-                default:
-                    Console.WriteLine(options);
-                    Console.Write("Your move: ");
-                    cords = Console.GetCursorPosition();
-                    HandleUserAndComputerMoves(lvl, cursor).Wait();
-                    break;
-            }
+            HandleUserAndComputerMoves(lvl, cursor, options).Wait();
 
             Console.ForegroundColor = ConsoleColor.Green;
             if (firstRaise && listOfPlayers[0].LastMove != Move.Raise)
             {
-                Console.SetCursorPosition(0, cords.Item2 + 1);
+                Console.SetCursorPosition(0, TexasHoldem.cords.Item2 + 1);
                 Console.WriteLine("Someone took raise \n\n");
             }
             else if(firstRaise)
             {
-                Console.SetCursorPosition(0, cords.Item2 + 1);
+                Console.SetCursorPosition(0, TexasHoldem.cords.Item2 + 1);
                 Console.WriteLine("You have to raise !\n\n");
 
             }
             else
-                Console.SetCursorPosition(0, cords.Item2 + 2);
-
-
-            // ###
+                Console.SetCursorPosition(0, TexasHoldem.cords.Item2 + 2);
 
             Console.ResetColor();
             EnterPress();
@@ -362,11 +341,31 @@ namespace Poker
                 }
             },token);
         }
-        private static async Task HandleUserAndComputerMoves(int lvl, Dictionary<Player, (int, int)> cursor)
+        private static async Task HandleUserAndComputerMoves(int lvl, Dictionary<Player, (int, int)> cursor,string options)
         {
             userToken = new CancellationTokenSource(); // Special token to delete user method
             computerToken = new CancellationTokenSource();  // Special token to delete Computer method
-            await Task.WhenAll(GetUserMoveAsync(), GetComputerMoveAsync(lvl, cursor));
+
+            switch (listOfPlayers[0].LastMove)
+            {
+                case Move.AllIn:
+                    Console.Write($"Your move: {listOfPlayers[0].LastMove}");
+                    cords = Console.GetCursorPosition();
+                    await GetComputerMoveAsync(lvl, cursor);
+                    break;
+
+                case Move.Pass:
+                    cords = Console.GetCursorPosition();
+                    await GetComputerMoveAsync(lvl, cursor);
+                    break;
+
+                default:
+                    Console.WriteLine(options);
+                    Console.Write("Your move: ");
+                    cords = Console.GetCursorPosition();
+                    await Task.WhenAll(GetUserMoveAsync(), GetComputerMoveAsync(lvl, cursor));
+                    break;
+            }
         }
         private static void RaiseComputer(int amount, Dictionary<Player, (int,int)> cursor)
         {
@@ -678,6 +677,7 @@ namespace Poker
         }
         private static void ShowingPlayers(Dictionary<Player, (int,int)> cursor)
         {
+            cursor.Clear();
             foreach (Player player in listOfPlayers)
             {
                 if (!player.IsPlayer && player.LastMove != Move.Pass)
