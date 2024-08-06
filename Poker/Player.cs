@@ -15,8 +15,6 @@ namespace Poker
         public string Name { get; set; }
         public int Monets { get; set; }
         public bool IsPlayer { get; private set; }
-        public bool IsPlaying { get; set; } = true;
-        public bool FirstRaised { get; set; } = false;
         public Move LastMove { get; set; }
         public Card[] Deck { get; set; }
 
@@ -38,7 +36,7 @@ namespace Poker
         } // Showing your deck
         public void RaiseMoney(int amount)
         {
-            if (amount > Monets)
+            if (amount >= Monets)
             {
                 amount = Monets;
                 LastMove = Move.AllIn;
@@ -207,7 +205,7 @@ namespace Poker
             // Random value for computer
             Random random = new Random();
             int value = random.Next(1, 11);
-
+            Move move;
 
             double procentOfMonets;
             if (amount < Monets)
@@ -219,32 +217,38 @@ namespace Poker
             if (procentOfMonets <= 1 && procentOfMonets >= 0.66)
             {
                 if ((int)handRank >= 5 && (int)handRank <= 10)
-                    return Move.Call;
+                    move = Move.Call;
                 else
-                    return Bluff(value);
+                    move = Bluff(value);
             }
             else if (procentOfMonets <= 0.65 && procentOfMonets >= 0.33)
             {
                 if ((int)handRank >= 3 && (int)handRank <= 10)
-                    return Move.Call;
+                    move = Move.Call;
                 else
-                    return Bluff(value);
+                    move = Bluff(value);
             }
             else
             {
                 if ((int)handRank >= 1 && (int)handRank <= 10)
-                    return Move.Call;
+                    move = Move.Call;
                 else
-                    return Bluff(value);
+                    move = Bluff(value);
             }
-        }
+
+            if (procentOfMonets == 1 && move == Move.Call)
+                return Move.AllIn;
+
+            return move;
+
+        } // Feature to choose pass or call for computer
         private Move Bluff(int value)
         {
             if (value >= 7)
                 return Move.Call;
             else
                 return Move.Pass;
-        }
+        } // Method to choose bluff
         public static void CreatingDeck()
         {
             var suits = Enum.GetValues(typeof(Suit));
@@ -268,6 +272,16 @@ namespace Poker
                 gameDeck.Push(card);
             }
         } // Shuffle the deck
+        public static void SetFold(bool startRound = false)
+        {
+            for(int i = 0; i < TexasHoldem.listOfPlayers.Count; i++)
+            { 
+                if (!startRound && (TexasHoldem.listOfPlayers[i].LastMove == Move.Pass || TexasHoldem.listOfPlayers[i].LastMove == Move.AllIn))
+                    continue;
+
+                TexasHoldem.listOfPlayers[i].LastMove = Move.Fold;
+            }
+        } // Set fold for all players
 
 
     }
@@ -281,7 +295,6 @@ namespace Poker
             Suit = suit;
             Rank = rank;
         }
-
         public void DrawCard(ConsoleColor color = ConsoleColor.Magenta)
         {
             Console.ForegroundColor = color;
@@ -295,6 +308,7 @@ namespace Poker
                 Thread.Sleep(sleep);
                 card.DrawCard(ConsoleColor.DarkMagenta);
             }
+            Console.WriteLine("\n");
         } // draw cards on the table
     }
 

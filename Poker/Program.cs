@@ -41,7 +41,8 @@ internal class Program
             Console.Clear();
             Console.WriteLine("Choose which mode do you want to play\n1 - Texas Holdem\n2 - Five-card Draw");
             Console.Write("\nMode: ");
-            ConsoleKeyInfo keyInfo = Console.ReadKey();
+            ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: true);
+
             if (int.TryParse(keyInfo.KeyChar.ToString(), out int result) && result == 1 || result == 2)
                 return result == 1;
         }
@@ -53,7 +54,7 @@ internal class Program
             Console.Clear();
             Console.WriteLine("How many players do you want to play with? (1 - 5)\n");
             Console.Write("Number: ");
-            ConsoleKeyInfo keyInfo = Console.ReadKey();
+            ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: true);
 
             if (int.TryParse(keyInfo.KeyChar.ToString(), out int number) && number >= 1 && number <= 5)
                 return number;
