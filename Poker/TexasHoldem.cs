@@ -268,14 +268,7 @@ namespace Poker
                 }
             }, token);
         } // User Async method to choose move
-        private static Task GetComputerMoveAsync(int lvl, Dictionary<Player, (int, int)> cursor)
-        {
-            return Task.Run( async () =>
-            {
-                await RandomPlayerChoose(cursor, false, lvl);
-            });
-        } // Computer async method to choose move
-        private static Task RandomPlayerChoose(Dictionary<Player, (int, int)> cursor, bool raise, int lvl = 0, int amount = 0)
+        private static Task GetComputerMoveAsync(Dictionary<Player, (int, int)> cursor, int lvl = 0, int amount = 0)
         {
             CancellationToken token = computerToken.Token;
             return Task.Run( async () =>
@@ -340,7 +333,7 @@ namespace Poker
                     return;
                 }
             },token);
-        }
+        } // Computer Async method to choose move
         private static async Task HandleUserAndComputerMoves(int lvl, Dictionary<Player, (int, int)> cursor,string options)
         {
             userToken = new CancellationTokenSource(); // Special token to delete user method
@@ -351,19 +344,19 @@ namespace Poker
                 case Move.AllIn:
                     Console.Write($"Your move: {listOfPlayers[0].LastMove}");
                     cords = Console.GetCursorPosition();
-                    await GetComputerMoveAsync(lvl, cursor);
+                    await GetComputerMoveAsync(cursor, lvl);
                     break;
 
                 case Move.Pass:
                     cords = Console.GetCursorPosition();
-                    await GetComputerMoveAsync(lvl, cursor);
+                    await GetComputerMoveAsync(cursor, lvl);
                     break;
 
                 default:
                     Console.WriteLine(options);
                     Console.Write("Your move: ");
                     cords = Console.GetCursorPosition();
-                    await Task.WhenAll(GetUserMoveAsync(), GetComputerMoveAsync(lvl, cursor));
+                    await Task.WhenAll(GetUserMoveAsync(), GetComputerMoveAsync(cursor, lvl));
                     break;
             }
         }
@@ -394,9 +387,8 @@ namespace Poker
                 }
 
                 Move callOrPass = listOfPlayers.Where(x => x.Name == name).First().CallOrPass(amount);
-                string move = callOrPass.ToString();
 
-                if (callOrPass == Move.Call)
+                if (callOrPass == Move.Call || callOrPass == Move.AllIn)
                     listOfPlayers.Where(x => x.Name == name).First().RaiseMoney(amount);
                 else
                     listOfPlayers.Where(x => x.Name == name).First().LastMove = Move.Pass;
@@ -404,7 +396,7 @@ namespace Poker
 
                 Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
-                Console.Write($"{move}");
+                Console.Write($"{callOrPass}");
                 Console.ResetColor();
 
                 if (!chooseOption)
