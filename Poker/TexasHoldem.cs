@@ -342,8 +342,11 @@ namespace Poker
             switch (listOfPlayers[0].LastMove)
             {
                 case Move.AllIn:
+                    Console.ForegroundColor = ConsoleColor.Green;
                     Console.Write($"Your move: {listOfPlayers[0].LastMove}");
+                    Console.ResetColor();
                     cords = Console.GetCursorPosition();
+                    Console.WriteLine("Waiting for the rest of the players . . .");
                     await GetComputerMoveAsync(cursor, lvl);
                     break;
 
@@ -428,21 +431,23 @@ namespace Poker
                         Console.SetCursorPosition(cords.Item1, cords.Item2);
                         Console.ForegroundColor = ConsoleColor.Green;
                         amount = amount > listOfPlayers[0].Monets ? listOfPlayers[0].Monets : amount;
-                        Console.WriteLine(amount + "\n");
+
+                        // Setting amount 
+                        if (listOfPlayers.Where(x => !x.IsPlayer && x.LastMove != Move.Pass).All(x => x.Monets < amount))
+                            amount = listOfPlayers.Where(x => !x.IsPlayer && x.LastMove != Move.Pass).Max(x => x.Monets);
+
+                        string move = amount == listOfPlayers[0].Monets ? Move.AllIn.ToString() : amount.ToString();
+                        Console.WriteLine(move + "\n");
                         Console.ResetColor();
                         cords = Console.GetCursorPosition();
-                        Console.WriteLine("Waiting for others players...");
+                        Console.WriteLine("Waiting for the rest of the players . . .");
                     }
                     else
                     {
                         cursor.Clear();
                         continue;
                     }
-                        
-                    // Setting amount 
-                    if (listOfPlayers.Where(x => !x.IsPlayer && x.LastMove != Move.Pass).All(x => x.Monets < amount))
-                        amount = listOfPlayers.Where(x => !x.IsPlayer && x.LastMove != Move.Pass).Max(x => x.Monets);
-
+                       
                     // Raise monets
                     listOfPlayers[0].RaiseMoney(amount);
                     break;
@@ -478,6 +483,7 @@ namespace Poker
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"Raised {monets} monets!"); // Information about monets
                 Console.SetCursorPosition(cords.Item1, cords.Item2);
+                Console.ResetColor();
 
                 switch(listOfPlayers[0].LastMove)
                 {
@@ -492,7 +498,8 @@ namespace Poker
                         ComputerCallOrPass(cords, cursor, monets).Wait();
                         break;
                     default:
-                        Console.WriteLine("\n1. Pass\n2. Call\n\n");
+                        string options = monets >= listOfPlayers[0].Monets ? "AllIn" : "Call";
+                        Console.WriteLine($"\n1. {options}\n2. Pass\n\n");
                         Console.Write("Your move: ");
                         cords = Console.GetCursorPosition(); // Setting cords
                         listOfPlayers.Where(x => x.LastMove == Move.Raise).FirstOrDefault().RaiseMoney(monets);
@@ -502,7 +509,7 @@ namespace Poker
                 }
                 Console.SetCursorPosition(0, cords.Item2 + 2);
             }
-            EnterPress("Click Enter to continue       ");
+            EnterPress("Click Enter to continue                    ");
         }
         private static void BankShow(bool x = true, string additionalString = "")
         {
@@ -551,10 +558,14 @@ namespace Poker
 
                     if(int.TryParse(key.KeyChar.ToString(), out int result) && result <= 2 && result >= 1)
                     {
-                        listOfPlayers[0].LastMove = (Move)(result + 2);
 
-                        if (listOfPlayers[0].LastMove == Move.Call)
+                        if (result == 1)
+                        {
+                            listOfPlayers[0].LastMove = Move.Call;
                             listOfPlayers[0].RaiseMoney(amount);
+                        }
+                        else
+                            listOfPlayers[0].LastMove = Move.Pass;
 
                         Console.ForegroundColor = ConsoleColor.Green;
                         Console.Write(listOfPlayers[0].LastMove.ToString());
