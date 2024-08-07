@@ -69,11 +69,11 @@ namespace Poker
                     cardsOnTable.Add(card);
                 }
                 Card.DrawCardOnTable(cardsOnTable,2000);
+                OptionsInGame(true, 1);
 
                 // Croupier deals 1 card on the table
                 for (int i = 0; i < 2; i++)
                 {
-                    OptionsInGame(true, i+1);
                     Console.Clear();
                     Console.WriteLine("Your Deck\n");
                     listOfPlayers.Where(x => x.IsPlayer).First().ShowDeck();
@@ -82,9 +82,9 @@ namespace Poker
                     card = Player.gameDeck.Pop();
                     cardsOnTable.Add(card);
                     Card.DrawCardOnTable(cardsOnTable,2000);
+                    OptionsInGame(false, i+2);
                 }
 
-                OptionsInGame(false, 3);
                 Console.Clear();
                 HandRank handRank = PokerHandEvaluator.CheckHand(listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault());
 
@@ -92,6 +92,7 @@ namespace Poker
                 Card.DrawCardOnTable(cardsOnTable);
                 Console.WriteLine(handRank.ToString());
                 Console.ReadKey();
+                // Metoda do wygranego (porownywanie) // wyczyscic infodeck z Card
             } while (true);
         } // Engine of the game
         public static bool StartRoundMenu()
@@ -362,7 +363,7 @@ namespace Poker
                     await Task.WhenAll(GetUserMoveAsync(), GetComputerMoveAsync(cursor, lvl));
                     break;
             }
-        }
+        } // Setting new tokens and active async methods
         private static void RaiseComputer(int amount, Dictionary<Player, (int,int)> cursor)
         {
             Dictionary<Player, bool> activePlayers = ActivePlayersToDictionary();
@@ -405,7 +406,7 @@ namespace Poker
                 if (!chooseOption)
                     Console.SetCursorPosition(cords.Item1, cords.Item2);
             }
-        }
+        } // Amount raise by computer
         private static void RaiseActivePlayers()
         {
             Dictionary<Player, (int, int)> cursor = new Dictionary<Player, (int, int)>(); // Cords for place to write information
@@ -510,7 +511,7 @@ namespace Poker
                 Console.SetCursorPosition(0, cords.Item2 + 2);
             }
             EnterPress("Click Enter to continue                    ");
-        }
+        } // Choosing who was first to raise
         private static void BankShow(bool x = true, string additionalString = "")
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
@@ -523,7 +524,7 @@ namespace Poker
 
             if (x)
                 listOfPlayers[0].ShowDeck();
-        }
+        } // Showing bank account
         private static Dictionary<Player, bool> ActivePlayersToDictionary()
         {
             Dictionary<Player, bool> activePlayers = new Dictionary<Player, bool>();
