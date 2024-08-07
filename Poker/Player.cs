@@ -300,11 +300,11 @@ namespace Poker
         {
             Console.ForegroundColor = color;
             Console.WriteLine($"{Rank}\t{Suit}");
-            infoDeck += $"{Rank}\t{Suit}\n";
             Console.ResetColor();
         } // draw card
         public static void DrawCardOnTable(List<Card> listOfCards, int sleep = 0)
         {
+            var cords = Console.GetCursorPosition();
             switch(listOfCards.Count)
             {
                 case 3:
@@ -312,19 +312,25 @@ namespace Poker
                     {
                         Thread.Sleep(sleep);
                         card.DrawCard(ConsoleColor.DarkMagenta);
+                        infoDeck += $"{card.Rank}\t{card.Suit}\n";
                     }
                     break;
                 case 4:
                 case 5:
-                    Console.ForegroundColor = ConsoleColor.DarkMagenta;
-                    Console.WriteLine(infoDeck);
+                    Thread.Sleep(sleep);
+                    infoDeck += $"{listOfCards[listOfCards.Count - 1].Rank}\t{listOfCards[listOfCards.Count - 1].Suit}\n";
                     listOfCards[listOfCards.Count - 1].DrawCard(ConsoleColor.DarkMagenta);
-                    Console.ResetColor();
                     break;
 
             }
-            Console.WriteLine("\n");
+            Console.SetCursorPosition(cords.Left, cords.Top);
         } // draw cards on the table
+        public static void ShowTable()
+        {
+            Console.ForegroundColor = ConsoleColor.DarkMagenta;
+            Console.WriteLine(infoDeck);
+            Console.ResetColor();
+        } // Showing table
     }
 
 
