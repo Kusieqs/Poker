@@ -7,19 +7,14 @@ internal class Program
         // Setting name for a main player
         string name = NickName();
 
-        // FALSE - Five-card
-        // TRUE - Texas holdem
-        bool mode = WhichMode();
-
         // choosing how many players do you want
         int players = HowManyPlayers();
 
         // Choosing lvl of players
-        List<Player> listOfPlayers = LevelOfGame(players, name, mode);
+        List<Player> listOfPlayers = LevelOfGame(players, name);
         Console.Clear();
 
-        if (mode)
-            TexasHoldem.Game(listOfPlayers);
+        TexasHoldem.Game(listOfPlayers);
     }
     private static string NickName()
     {
@@ -60,7 +55,7 @@ internal class Program
                 return number;
         }
     } // Choosing how many players do you want in game
-    private static List<Player> LevelOfGame(int players, string name, bool mode)
+    private static List<Player> LevelOfGame(int players, string name)
     {
         List<Player> list = new List<Player>();
         while (true)
@@ -86,7 +81,7 @@ internal class Program
                     continue;
             }
 
-            list.Add(new Player(mainMoney, true, (mode == true ? 2 : 5), name));
+            list.Add(new Player(mainMoney, true, 2, name));
             Console.Clear();
 
             for(int i = 1; i <= players; i++)
@@ -103,7 +98,7 @@ internal class Program
                         mainMoney = (random.Next(500, 1200)/10) * 10;
                         break;
                 }
-                list.Add(new Player(mainMoney, false, (mode == true ? 2 : 5), $"Player {i}"));
+                list.Add(new Player(mainMoney, false, 2, $"Player {i}"));
             }
 
             bool loop = true;

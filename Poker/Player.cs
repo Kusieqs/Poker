@@ -287,9 +287,10 @@ namespace Poker
     }
 
     public class Card
-    { 
+    {
         public Suit Suit { get; set; }
         public Rank Rank { get; set; }
+        public static string infoDeck = "";
         public Card(Suit suit, Rank rank)
         {
             Suit = suit;
@@ -303,13 +304,33 @@ namespace Poker
         } // draw card
         public static void DrawCardOnTable(List<Card> listOfCards, int sleep = 0)
         {
-            foreach(Card card in listOfCards)
+            var cords = Console.GetCursorPosition();
+            switch(listOfCards.Count)
             {
-                Thread.Sleep(sleep);
-                card.DrawCard(ConsoleColor.DarkMagenta);
+                case 3:
+                    foreach (Card card in listOfCards)
+                    {
+                        Thread.Sleep(sleep);
+                        card.DrawCard(ConsoleColor.DarkMagenta);
+                        infoDeck += $"{card.Rank}\t{card.Suit}\n";
+                    }
+                    break;
+                case 4:
+                case 5:
+                    Thread.Sleep(sleep);
+                    infoDeck += $"{listOfCards[listOfCards.Count - 1].Rank}\t{listOfCards[listOfCards.Count - 1].Suit}\n";
+                    listOfCards[listOfCards.Count - 1].DrawCard(ConsoleColor.DarkMagenta);
+                    break;
+
             }
-            Console.WriteLine("\n");
+            Console.SetCursorPosition(cords.Left, cords.Top);
         } // draw cards on the table
+        public static void ShowTable()
+        {
+            Console.ForegroundColor = ConsoleColor.DarkMagenta;
+            Console.WriteLine(infoDeck);
+            Console.ResetColor();
+        } // Showing table
     }
 
 

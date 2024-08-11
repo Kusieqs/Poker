@@ -56,12 +56,10 @@ namespace Poker
                 // Take move from players
                 OptionsInGame(true, 0);
                 Console.Clear();
-
-                // Showing your deck
-                listOfPlayers.Where(x => x.IsPlayer).First().ShowDeck();
+                BankShow();
 
                 // Croupier deals 3 cards on the table
-                Console.WriteLine("Cards putted by croupier\n");
+                Console.WriteLine("Cards on table:");
                 Card card;
                 for (int i = 0; i < 3; i++)
                 {
@@ -69,22 +67,19 @@ namespace Poker
                     cardsOnTable.Add(card);
                 }
                 Card.DrawCardOnTable(cardsOnTable,2000);
+                OptionsInGame(true, 1);
 
                 // Croupier deals 1 card on the table
                 for (int i = 0; i < 2; i++)
                 {
-                    OptionsInGame(true, i+1);
-                    Console.Clear();
-                    Console.WriteLine("Your Deck\n");
-                    listOfPlayers.Where(x => x.IsPlayer).First().ShowDeck();
-
-                    Console.WriteLine("\n\n\nCards putted by croupier\n");
+                    BankShow();
+                    Console.WriteLine(Card.infoDeck);
                     card = Player.gameDeck.Pop();
                     cardsOnTable.Add(card);
                     Card.DrawCardOnTable(cardsOnTable,2000);
+                    OptionsInGame(false, i+2);
                 }
 
-                OptionsInGame(false, 3);
                 Console.Clear();
                 HandRank handRank = PokerHandEvaluator.CheckHand(listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault());
 
@@ -92,6 +87,7 @@ namespace Poker
                 Card.DrawCardOnTable(cardsOnTable);
                 Console.WriteLine(handRank.ToString());
                 Console.ReadKey();
+                // Metoda do wygranego (porownywanie) // wyczyscic infodeck z Card
             } while (true);
         } // Engine of the game
         public static bool StartRoundMenu()
@@ -171,13 +167,12 @@ namespace Poker
             if(cardsOnTable.Count != 0)
             {
                 Console.WriteLine("Cards on table:");
-                Card.DrawCardOnTable(cardsOnTable);
+                Card.ShowTable();
             }
 
             ShowingPlayers(cursor); // Showing Players
             string whichOption = option == true ? "Wait" : "Check";
             string options = $"\nOptions:\n\n1 - Raise\n2 - {whichOption}\n3 - Pass \n\n";
-            (int, int) cords = (0, 0);
 
             // Menu for player
             HandleUserAndComputerMoves(lvl, cursor, options).Wait();
@@ -199,6 +194,7 @@ namespace Poker
 
             Console.ResetColor();
             EnterPress();
+            chooseOption = false;
 
             // Method to raise amount of money (if somebody choosed raise)
             if (listOfPlayers.Any(x => x.LastMove == Move.Raise && x.LastMove != Move.Pass))
@@ -288,6 +284,7 @@ namespace Poker
                             Console.Write($"{Move.AllIn}");
                             Console.ResetColor();
                             activePlayers.Remove(dict.Key);
+                            Console.SetCursorPosition(cords.Left, cords.Top);
                         }
                     }
 
@@ -362,7 +359,7 @@ namespace Poker
                     await Task.WhenAll(GetUserMoveAsync(), GetComputerMoveAsync(cursor, lvl));
                     break;
             }
-        }
+        } // Setting new tokens and active async methods
         private static void RaiseComputer(int amount, Dictionary<Player, (int,int)> cursor)
         {
             Dictionary<Player, bool> activePlayers = ActivePlayersToDictionary();
@@ -405,7 +402,7 @@ namespace Poker
                 if (!chooseOption)
                     Console.SetCursorPosition(cords.Item1, cords.Item2);
             }
-        }
+        } // Amount raise by computer
         private static void RaiseActivePlayers()
         {
             Dictionary<Player, (int, int)> cursor = new Dictionary<Player, (int, int)>(); // Cords for place to write information
@@ -510,7 +507,7 @@ namespace Poker
                 Console.SetCursorPosition(0, cords.Item2 + 2);
             }
             EnterPress("Click Enter to continue                    ");
-        }
+        } // Choosing who was first to raise
         private static void BankShow(bool x = true, string additionalString = "")
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
@@ -523,7 +520,7 @@ namespace Poker
 
             if (x)
                 listOfPlayers[0].ShowDeck();
-        }
+        } // Showing bank account
         private static Dictionary<Player, bool> ActivePlayersToDictionary()
         {
             Dictionary<Player, bool> activePlayers = new Dictionary<Player, bool>();
@@ -533,7 +530,7 @@ namespace Poker
                     activePlayers.Add(listOfPlayers[i], false);
             }
             return activePlayers;
-        }
+        } // Setting active players to dictionary
         private static void StartReadingKeys()
         {
             Task.Run(() =>
@@ -547,7 +544,7 @@ namespace Poker
                     }
                 }
             });
-        }
+        } // Method for user to enter char
         private static Task PlayerCallOrPass(int amount)
         {
             return Task.Run(() =>
@@ -575,7 +572,7 @@ namespace Poker
 
                 } while (true);
             });
-        }
+        } // User method to choose Call (Allin) or pass
         private static Task ComputerCallOrPass((int,int) cords, Dictionary<Player, (int, int)> cursor, int amount)
         {
             return Task.Run( async () =>
@@ -624,7 +621,7 @@ namespace Poker
                     Console.SetCursorPosition(cords.Item1, cords.Item2);
                 }
             });
-        }
+        } // Computer method to choose Call (Allin) or pass
         private static int StrongCall(double procent, int monets)
         {
             Random random = new Random();
@@ -664,7 +661,7 @@ namespace Poker
 
             } while (true);
 
-        }
+        } // setting amount of monets for comupter
         private static void EnterPress(string message = "Click Enter to continue")
         {
             Console.ForegroundColor = ConsoleColor.DarkCyan;
@@ -677,7 +674,7 @@ namespace Poker
                     break;
             } while (true);
             Console.ResetColor();
-        }
+        } // Enter press
         private static void ShowingPlayers(Dictionary<Player, (int,int)> cursor)
         {
             cursor.Clear();
@@ -690,7 +687,7 @@ namespace Poker
                     Console.WriteLine("\n");
                 }
             }
-        }
+        } // Showing all players
         private static void CheckPlayers()
         {
             string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),"Rozdania");
@@ -700,6 +697,6 @@ namespace Poker
                 body += $"{player.Name}\n\n{player.Deck[0].Rank} {player.Deck[0].Suit}\n{player.Deck[1].Rank} {player.Deck[1].Suit}\n\n\n";
             }
             File.WriteAllText(Path.Combine(path,"Info.txt"), body);
-        }
+        } // Additional method to downwrite file with decks into txt file
     }
 }
