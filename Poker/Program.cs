@@ -29,19 +29,6 @@ internal class Program
                 return name;
         }
     } // Choosing nickname for a main player
-    private static bool WhichMode()
-    {
-        while (true)
-        {
-            Console.Clear();
-            Console.WriteLine("Choose which mode do you want to play\n1 - Texas Holdem\n2 - Five-card Draw");
-            Console.Write("\nMode: ");
-            ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: true);
-
-            if (int.TryParse(keyInfo.KeyChar.ToString(), out int result) && result == 1 || result == 2)
-                return result == 1;
-        }
-    } // Choosing which game do you want to play
     private static int HowManyPlayers() 
     {
         while (true)

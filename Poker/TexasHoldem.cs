@@ -33,61 +33,75 @@ namespace Poker
             // Game engine
             do
             {
-                // Setting fold for everyone
-                Player.SetFold(true);
-
-                // Checking whether our player is enable to play
-                bool IsPlaying = StartRoundMenu();
-
-                // Exit game
-                if (!IsPlaying)
-                    Environment.Exit(0);
-
-                // Creating deck and shuffle
-                Player.CreatingDeck();
-                Player.Shuffle();
-                Console.Clear();
-
-                // Dealing cards to decks
-                DealCards();
-
-                CheckPlayers(); // Optional method to show decks of players
-
-                // Take move from players
-                OptionsInGame(true, 0);
-                Console.Clear();
-                BankShow();
-
-                // Croupier deals 3 cards on the table
-                Console.WriteLine("Cards on table:");
-                Card card;
-                for (int i = 0; i < 3; i++)
+                try
                 {
-                    card = Player.gameDeck.Pop();
-                    cardsOnTable.Add(card);
-                }
-                Card.DrawCardOnTable(cardsOnTable,2000);
-                OptionsInGame(true, 1);
+                    // Setting fold for everyone
+                    Player.SetFold(true);
 
-                // Croupier deals 1 card on the table
-                for (int i = 0; i < 2; i++)
-                {
+                    // Checking whether our player is enable to play
+                    bool IsPlaying = StartRoundMenu();
+
+                    // Exit game
+                    if (!IsPlaying)
+                        Environment.Exit(0);
+
+                    // Creating deck and shuffle
+                    Player.CreatingDeck();
+                    Player.Shuffle();
+                    Console.Clear();
+
+                    // Dealing cards to decks
+                    DealCards();
+
+                    CheckPlayers(); // Optional method to show decks of players
+
+                    // Take move from players
+                    OptionsInGame(true, 0);
+                    Console.Clear();
                     BankShow();
-                    Console.WriteLine(Card.infoDeck);
-                    card = Player.gameDeck.Pop();
-                    cardsOnTable.Add(card);
-                    Card.DrawCardOnTable(cardsOnTable,2000);
-                    OptionsInGame(false, i+2);
+
+                    // Croupier deals 3 cards on the table
+                    Console.WriteLine("Cards on table:");
+                    Card card;
+                    for (int i = 0; i < 3; i++)
+                    {
+                        card = Player.gameDeck.Pop();
+                        cardsOnTable.Add(card);
+                    }
+                    Card.DrawCardOnTable(cardsOnTable, 2000);
+                    OptionsInGame(true, 1);
+
+                    // Croupier deals 1 card on the table
+                    for (int i = 0; i < 2; i++)
+                    {
+                        BankShow();
+                        Console.WriteLine(Card.infoDeck);
+                        card = Player.gameDeck.Pop();
+                        cardsOnTable.Add(card);
+                        Card.DrawCardOnTable(cardsOnTable, 2000);
+                        OptionsInGame(false, i + 2);
+                    }
+
+                    Console.Clear();
+                    HandRank handRank = PokerHandEvaluator.CheckHand(listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault());
+
+                    listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault().ShowDeck();
+                    Card.DrawCardOnTable(cardsOnTable);
+                    Console.WriteLine(handRank.ToString());
+                    Console.ReadKey();
+                }
+                catch (OnePlayerException ex)
+                {
+                    Console.SetCursorPosition(cords.Item1, cords.Item2 + 2);
+                    Console.WriteLine(ex.Message);
+                    EnterPress();
+                }
+                finally
+                {
+                    listOfPlayers.Where(x => x.LastMove != Move.Pass).First().Monets += bank;
+                    bank = 0;
                 }
 
-                Console.Clear();
-                HandRank handRank = PokerHandEvaluator.CheckHand(listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault());
-
-                listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault().ShowDeck();
-                Card.DrawCardOnTable(cardsOnTable);
-                Console.WriteLine(handRank.ToString());
-                Console.ReadKey();
-                // Metoda do wygranego (porownywanie) // wyczyscic infodeck z Card
             } while (true);
         } // Engine of the game
         public static bool StartRoundMenu()
@@ -176,21 +190,19 @@ namespace Poker
 
             // Menu for player
             HandleUserAndComputerMoves(lvl, cursor, options).Wait();
+            if (listOfPlayers.Where(x => x.LastMove != Move.Pass).Count() == 1)
+                throw new OnePlayerException();
 
             Console.ForegroundColor = ConsoleColor.Green;
-            if (firstRaise && listOfPlayers[0].LastMove != Move.Raise)
-            {
-                Console.SetCursorPosition(0, TexasHoldem.cords.Item2 + 1);
-                Console.WriteLine("Someone took raise \n\n");
-            }
-            else if(firstRaise)
-            {
-                Console.SetCursorPosition(0, TexasHoldem.cords.Item2 + 1);
-                Console.WriteLine("You have to raise !\n\n");
+            Console.SetCursorPosition(0, cords.Item2 + 1);
 
-            }
+            if (firstRaise && listOfPlayers[0].LastMove != Move.Raise)
+                Console.WriteLine("Someone took raise \n\n");
+            else if(firstRaise)
+                Console.WriteLine("You have to raise !\n\n");
             else
-                Console.SetCursorPosition(0, TexasHoldem.cords.Item2 + 2);
+                Console.SetCursorPosition(0, Console.GetCursorPosition().Top + 1);
+
 
             Console.ResetColor();
             EnterPress();
@@ -246,19 +258,28 @@ namespace Poker
 
                         } while (true);
 
+                        // setting last move for user
+                        listOfPlayers[0].LastMove = (Move)(int.Parse(consoleKeyInfo.KeyChar.ToString()));
+
                         // Adding Last move for a main player
                         if (Move.Raise == moveEnum)
                         {
                             firstRaise = true;
                             computerToken.Cancel(); // Deleting computer async method
                         }
-                        // setting last move for user
-                        listOfPlayers[0].LastMove = (Move)(int.Parse(consoleKeyInfo.KeyChar.ToString()));
+                        else if (Move.Pass == moveEnum && listOfPlayers.Where(x => x.LastMove != Move.Pass).Count() == 1)
+                            throw new OnePlayerException();
+
                         break;
                     }
                     catch (OperationCanceledException)
                     {
                         // Breaking method
+                        return;
+                    }
+                    catch (OnePlayerException)
+                    {
+                        computerToken.Cancel();
                         return;
                     }
                 }
@@ -320,6 +341,8 @@ namespace Poker
                             userToken.Cancel();
                             break;
                         }
+                        else if (Move.Pass == Enum.Parse<Move>(move) && listOfPlayers.Where(x => x.LastMove != Move.Pass).Count() == 1)
+                            throw new OnePlayerException();
 
                         if (!chooseOption)
                             Console.SetCursorPosition(cords.Item1, cords.Item2);
@@ -327,6 +350,11 @@ namespace Poker
                 }
                 catch (OperationCanceledException)
                 {
+                    return;
+                }
+                catch (OnePlayerException)
+                {
+                    userToken.Cancel();
                     return;
                 }
             },token);
