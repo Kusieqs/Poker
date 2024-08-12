@@ -70,6 +70,7 @@ namespace Poker
                     }
                     Card.DrawCardOnTable(cardsOnTable, 2000);
                     OptionsInGame(true, 1);
+                    Console.Clear();
 
                     // Croupier deals 1 card on the table
                     for (int i = 0; i < 2; i++)
@@ -89,10 +90,12 @@ namespace Poker
                     Card.DrawCardOnTable(cardsOnTable);
                     Console.WriteLine(handRank.ToString());
                     Console.ReadKey();
+
+                    // Koncowa metoda na porowbnanioe pokazanie kard i wywolanie zwyciescy
                 }
                 catch (OnePlayerException ex)
                 {
-                    Console.SetCursorPosition(cords.Item1, cords.Item2 + 2);
+                    Console.SetCursorPosition(0, cords.Item2 + 2);
                     Console.WriteLine(ex.Message);
                     EnterPress();
                 }
@@ -210,7 +213,11 @@ namespace Poker
 
             // Method to raise amount of money (if somebody choosed raise)
             if (listOfPlayers.Any(x => x.LastMove == Move.Raise && x.LastMove != Move.Pass))
+            {
                 RaiseActivePlayers();
+                if (listOfPlayers.Where(x => x.LastMove != Move.Pass).Count() == 1)
+                    throw new OnePlayerException();
+            }
 
             firstRaise = false;
             Player.SetFold();
@@ -359,7 +366,7 @@ namespace Poker
                 }
             },token);
         } // Computer Async method to choose move
-        private static async Task HandleUserAndComputerMoves(int lvl, Dictionary<Player, (int, int)> cursor,string options)
+        private static async Task HandleUserAndComputerMoves(int lvl, Dictionary<Player, (int, int)> cursor, string options)
         {
             userToken = new CancellationTokenSource(); // Special token to delete user method
             computerToken = new CancellationTokenSource();  // Special token to delete Computer method
@@ -390,45 +397,54 @@ namespace Poker
         } // Setting new tokens and active async methods
         private static void RaiseComputer(int amount, Dictionary<Player, (int,int)> cursor)
         {
-            Dictionary<Player, bool> activePlayers = ActivePlayersToDictionary();
-            var cords = Console.GetCursorPosition();
-            Random random = new Random();
-
-            for (int i = 0; i < activePlayers.Count; i++)
+            try
             {
-                Thread.Sleep(random.Next(2000, 5000));
-                Player player = null;
-                string name;
-                while (true)
+                Dictionary<Player, bool> activePlayers = ActivePlayersToDictionary();
+                var cords = Console.GetCursorPosition();
+                Random random = new Random();
+
+                for (int i = 0; i < activePlayers.Count; i++)
                 {
-                    int indexOfPlayer = random.Next(0, activePlayers.Count);
-                    player = activePlayers.Keys.ElementAt(indexOfPlayer);
-
-                    if (activePlayers[player] == true)
-                        continue;
-                    else
+                    Thread.Sleep(random.Next(2000, 5000));
+                    Player player = null;
+                    string name;
+                    while (true)
                     {
-                        activePlayers[player] = true;
-                        name = player.Name;
-                        break;
+                        int indexOfPlayer = random.Next(0, activePlayers.Count);
+                        player = activePlayers.Keys.ElementAt(indexOfPlayer);
+
+                        if (activePlayers[player] == true)
+                            continue;
+                        else
+                        {
+                            activePlayers[player] = true;
+                            name = player.Name;
+                            break;
+                        }
                     }
+
+                    Move callOrPass = listOfPlayers.Where(x => x.Name == name).First().CallOrPass(amount);
+
+                    if (callOrPass == Move.Call || callOrPass == Move.AllIn)
+                        listOfPlayers.Where(x => x.Name == name).First().RaiseMoney(amount);
+                    else
+                        listOfPlayers.Where(x => x.Name == name).First().LastMove = Move.Pass;
+
+                    Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
+                    Console.ForegroundColor = ConsoleColor.DarkGreen;
+                    Console.Write($"{callOrPass}");
+                    Console.ResetColor();
+
+                    if (listOfPlayers.Where(x => x.LastMove != Move.Pass).Count() == 1)
+                        throw new OnePlayerException();
+
+                    if (!chooseOption)
+                        Console.SetCursorPosition(cords.Item1, cords.Item2);
                 }
-
-                Move callOrPass = listOfPlayers.Where(x => x.Name == name).First().CallOrPass(amount);
-
-                if (callOrPass == Move.Call || callOrPass == Move.AllIn)
-                    listOfPlayers.Where(x => x.Name == name).First().RaiseMoney(amount);
-                else
-                    listOfPlayers.Where(x => x.Name == name).First().LastMove = Move.Pass;
-
-
-                Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
-                Console.ForegroundColor = ConsoleColor.DarkGreen;
-                Console.Write($"{callOrPass}");
-                Console.ResetColor();
-
-                if (!chooseOption)
-                    Console.SetCursorPosition(cords.Item1, cords.Item2);
+            }
+            catch (OnePlayerException)
+            {
+                return;
             }
         } // Amount raise by computer
         private static void RaiseActivePlayers()
@@ -477,7 +493,7 @@ namespace Poker
                     listOfPlayers[0].RaiseMoney(amount);
                     break;
                 }
-                RaiseComputer(amount, cursor); // Random computer move 
+                RaiseComputer(amount, cursor); 
                 Console.SetCursorPosition(0, cords.Item2);
             }
             else // Raise money for computer
@@ -510,7 +526,9 @@ namespace Poker
                 Console.SetCursorPosition(cords.Item1, cords.Item2);
                 Console.ResetColor();
 
-                switch(listOfPlayers[0].LastMove)
+                userToken = new CancellationTokenSource(); // Special token to delete user method
+                computerToken = new CancellationTokenSource();  // Special token to delete Computer method
+                switch (listOfPlayers[0].LastMove)
                 {
                     case Move.AllIn:
                         Console.Write($"Your move: {listOfPlayers[0].LastMove}");
@@ -534,7 +552,6 @@ namespace Poker
                 }
                 Console.SetCursorPosition(0, cords.Item2 + 2);
             }
-            EnterPress("Click Enter to continue                    ");
         } // Choosing who was first to raise
         private static void BankShow(bool x = true, string additionalString = "")
         {
@@ -575,80 +592,98 @@ namespace Poker
         } // Method for user to enter char
         private static Task PlayerCallOrPass(int amount)
         {
+            CancellationToken token = userToken.Token;
             return Task.Run(() =>
             {
                 do
                 {
-                    ConsoleKeyInfo key = Console.ReadKey(intercept : true);
-
-                    if(int.TryParse(key.KeyChar.ToString(), out int result) && result <= 2 && result >= 1)
+                    try
                     {
+                        ConsoleKeyInfo key = Console.ReadKey(intercept: true);
 
-                        if (result == 1)
+                        if (int.TryParse(key.KeyChar.ToString(), out int result) && result <= 2 && result >= 1)
                         {
-                            listOfPlayers[0].LastMove = Move.Call;
-                            listOfPlayers[0].RaiseMoney(amount);
-                        }
-                        else
-                            listOfPlayers[0].LastMove = Move.Pass;
 
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write(listOfPlayers[0].LastMove.ToString());
-                        Console.ResetColor();
-                        break;
-                    }
+                            if (result == 1)
+                            {
+                                listOfPlayers[0].LastMove = Move.Call;
+                                listOfPlayers[0].RaiseMoney(amount);
+                            }
+                            else
+                                listOfPlayers[0].LastMove = Move.Pass;
 
-                } while (true);
-            });
-        } // User method to choose Call (Allin) or pass
-        private static Task ComputerCallOrPass((int,int) cords, Dictionary<Player, (int, int)> cursor, int amount)
-        {
-            return Task.Run( async () =>
-            {
-                Dictionary<Player, bool> activePlayers = new Dictionary<Player, bool>();
-
-                for(int i = 1; i < listOfPlayers.Count; i++)
-                {
-                    if (listOfPlayers[i].LastMove != Move.Raise && listOfPlayers[i].LastMove != Move.Pass)
-                        activePlayers.Add(listOfPlayers[i], false);
-                }
-
-                for (int i = 0; i < listOfPlayers.Where(x => !x.IsPlayer && x.LastMove != Move.Pass && x.LastMove != Move.Raise).Count(); i++)
-                {
-                    Random random = new Random();
-                    Player player = null;
-                    string name;
-                    while (true)
-                    {
-                        int indexOfPlayer = random.Next(0, activePlayers.Count);
-                        player = activePlayers.Keys.ElementAt(indexOfPlayer);
-
-                        if (activePlayers[player] == true)
-                            continue;
-                        else
-                        {
-                            activePlayers[player] = true;
-                            name = player.Name;
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.Write(listOfPlayers[0].LastMove.ToString());
+                            Console.ResetColor();
                             break;
                         }
                     }
-                    await Task.Delay(random.Next(1000, 5000));
+                    catch (OnePlayerException)
+                    {
+                        computerToken.Cancel();
+                        return;
+                    }
+                } while (true);
+            },token);
+        } // User method to choose Call (Allin) or pass
+        private static Task ComputerCallOrPass((int,int) cords, Dictionary<Player, (int, int)> cursor, int amount)
+        {
+            CancellationToken token = computerToken.Token;
+            return Task.Run( async () =>
+            {
+                try
+                {
+                    Dictionary<Player, bool> activePlayers = new Dictionary<Player, bool>();
 
-                    Move callOrPass = listOfPlayers.Where(x => x.Name == name).First().CallOrPass(amount);
-                    string move = callOrPass.ToString();
+                    for (int i = 1; i < listOfPlayers.Count; i++)
+                    {
+                        if (listOfPlayers[i].LastMove != Move.Raise && listOfPlayers[i].LastMove != Move.Pass)
+                            activePlayers.Add(listOfPlayers[i], false);
+                    }
 
-                    if (callOrPass == Move.Call)
-                        listOfPlayers.Where(x => x.Name == name).First().RaiseMoney(amount);
-                    else
-                        listOfPlayers.Where(x => x.Name == name).First().LastMove = Move.Pass;
+                    for (int i = 0; i < listOfPlayers.Where(x => !x.IsPlayer && x.LastMove != Move.Pass && x.LastMove != Move.Raise).Count(); i++)
+                    {
+                        Random random = new Random();
+                        Player player = null;
+                        string name;
+                        while (true)
+                        {
+                            int indexOfPlayer = random.Next(0, activePlayers.Count);
+                            player = activePlayers.Keys.ElementAt(indexOfPlayer);
 
-                    Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
-                    Console.ForegroundColor = ConsoleColor.DarkGreen;
-                    Console.Write($"{move}");
-                    Console.ResetColor();
-                    Console.SetCursorPosition(cords.Item1, cords.Item2);
+                            if (activePlayers[player] == true)
+                                continue;
+                            else
+                            {
+                                activePlayers[player] = true;
+                                name = player.Name;
+                                break;
+                            }
+                        }
+                        await Task.Delay(random.Next(1000, 5000));
+
+                        Move callOrPass = listOfPlayers.Where(x => x.Name == name).First().CallOrPass(amount);
+                        string move = callOrPass.ToString();
+
+                        if (callOrPass == Move.Call)
+                            listOfPlayers.Where(x => x.Name == name).First().RaiseMoney(amount);
+                        else
+                            listOfPlayers.Where(x => x.Name == name).First().LastMove = Move.Pass;
+
+                        Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
+                        Console.ForegroundColor = ConsoleColor.DarkGreen;
+                        Console.Write($"{move}");
+                        Console.ResetColor();
+                        Console.SetCursorPosition(cords.Item1, cords.Item2);
+
+                    }
                 }
-            });
+                catch (OnePlayerException)
+                {
+                    userToken.Cancel();
+                    return;
+                }                
+            },token);
         } // Computer method to choose Call (Allin) or pass
         private static int StrongCall(double procent, int monets)
         {

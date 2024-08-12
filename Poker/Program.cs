@@ -15,6 +15,8 @@ internal class Program
         Console.Clear();
 
         TexasHoldem.Game(listOfPlayers);
+
+        // Koncowa metoda jakas
     }
     private static string NickName()
     {
