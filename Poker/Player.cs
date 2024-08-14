@@ -17,6 +17,7 @@ namespace Poker
         public bool IsPlayer { get; private set; }
         public Move LastMove { get; set; }
         public Card[] Deck { get; set; }
+        public HandRank Hand { get; set; }
 
         public Player(int monets, bool player,  int deck, string name) 
         {
@@ -282,7 +283,32 @@ namespace Poker
                 TexasHoldem.listOfPlayers[i].LastMove = Move.Fold;
             }
         } // Set fold for all players
+        public static string ChooseWinner()
+        {
+            string winner = string.Empty;
+            for (int i = 0; i < TexasHoldem.listOfPlayers.Count; i ++)
+            {
+                if (TexasHoldem.listOfPlayers[i].LastMove == Move.Pass)
+                    continue;
 
+                if (i == 0)
+                {
+                    winner = TexasHoldem.listOfPlayers[i].Name;
+                    continue;
+                }
+
+                if ((int)TexasHoldem.listOfPlayers.Where(x => x.Name == winner).First().Hand == (int)TexasHoldem.listOfPlayers[i].Hand)
+                {
+                    // metoda ktora bedzie nam porownywac jaki kolor albo wielkosc kart albo reszte (Stworzenie klasy do tego + )//
+                }
+                else if ((int)TexasHoldem.listOfPlayers.Where(x => x.Name == winner).First().Hand < (int)TexasHoldem.listOfPlayers[i].Hand)
+                    winner = TexasHoldem.listOfPlayers[i].Name;
+            }
+
+            TexasHoldem.listOfPlayers.Where(x => x.Name != winner).Select(x => x.LastMove = Move.Pass);
+
+            return winner;
+        }
 
     }
 

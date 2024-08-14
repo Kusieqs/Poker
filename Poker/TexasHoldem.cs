@@ -46,6 +46,9 @@ namespace Poker
                         Environment.Exit(0);
 
                     // Creating deck and shuffle
+                    Player.mainDeck.Clear();
+                    Player.gameDeck.Clear();
+                    cardsOnTable.Clear();
                     Player.CreatingDeck();
                     Player.Shuffle();
                     Console.Clear();
@@ -76,22 +79,21 @@ namespace Poker
                     for (int i = 0; i < 2; i++)
                     {
                         BankShow();
+                        Console.WriteLine("Cards on table:");
+                        Console.ForegroundColor = ConsoleColor.DarkMagenta;
                         Console.WriteLine(Card.infoDeck);
+                        Console.ResetColor();
                         card = Player.gameDeck.Pop();
                         cardsOnTable.Add(card);
                         Card.DrawCardOnTable(cardsOnTable, 2000);
                         OptionsInGame(false, i + 2);
+                        Console.Clear();
                     }
 
-                    Console.Clear();
-                    HandRank handRank = PokerHandEvaluator.CheckHand(listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault());
-
-                    listOfPlayers.Where(x => x.IsPlayer).FirstOrDefault().ShowDeck();
+                    BankShow(false);
                     Card.DrawCardOnTable(cardsOnTable);
-                    Console.WriteLine(handRank.ToString());
-                    Console.ReadKey();
+                    FinalResult();
 
-                    // Koncowa metoda na porowbnanioe pokazanie kard i wywolanie zwyciescy
                 }
                 catch (OnePlayerException ex)
                 {
@@ -761,5 +763,22 @@ namespace Poker
             }
             File.WriteAllText(Path.Combine(path,"Info.txt"), body);
         } // Additional method to downwrite file with decks into txt file
+        private static void FinalResult()
+        {
+            foreach(var player in listOfPlayers)
+            {
+                Console.Write(player.Name);
+                if(player.LastMove == Move.Pass)
+                    Console.WriteLine($"({player.LastMove})");
+                player.ShowDeck();
+                player.Hand = PokerHandEvaluator.CheckHand(player);
+                Console.WriteLine("Hand: " + player.Hand);
+            }
+
+            Console.WriteLine("\n");
+            Console.WriteLine(Player.ChooseWinner() + $" won {bank} monets!");
+
+            EnterPress();
+        }
     }
 }
