@@ -37,28 +37,23 @@ namespace Poker
         {
             return IsStraightFlush(hand) && hand.Min(card => card.Rank) == Rank.Ten;
         }
-
         private static bool IsStraightFlush(Card[] hand)
         {
             return IsFlush(hand) && IsStraight(hand);
         }
-
         private static bool IsFourOfAKind(Card[] hand)
         {
             return hand.GroupBy(card => card.Rank).Any(group => group.Count() == 4);
         }
-
         private static bool IsFullHouse(Card[] hand)
         {
             var rankGroups = hand.GroupBy(card => card.Rank).ToList();
             return rankGroups.Count == 2 && rankGroups.Any(group => group.Count() == 3);
         }
-
         private static bool IsFlush(Card[] hand)
         {
             return hand.GroupBy(card => card.Suit).Count() == 1;
         }
-
         private static bool IsStraight(Card[] hand)
         {
             var orderedRanks = hand.Select(card => (int)card.Rank).OrderBy(rank => rank).ToList();
@@ -69,18 +64,15 @@ namespace Poker
             }
             return true;
         }
-
         private static bool IsThreeOfAKind(Card[] hand)
         {
             return hand.GroupBy(card => card.Rank).Any(group => group.Count() == 3);
         }
-
         private static bool IsTwoPair(Card[] hand)
         {
             var pairs = hand.GroupBy(card => card.Rank).Where(group => group.Count() == 2).ToList();
             return pairs.Count == 2;
         }
-
         private static bool IsOnePair(Card[] hand)
         {
             return hand.GroupBy(card => card.Rank).Any(group => group.Count() == 2);
