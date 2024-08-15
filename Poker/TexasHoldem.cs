@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Numerics;
 using System.Reflection;
 
@@ -56,8 +57,6 @@ namespace Poker
                     // Dealing cards to decks
                     DealCards();
 
-                    CheckPlayers(); // Optional method to show decks of players
-
                     // Take move from players
                     OptionsInGame(true, 0);
                     Console.Clear();
@@ -92,14 +91,13 @@ namespace Poker
 
                     BankShow(false);
                     Card.DrawCardOnTable(cardsOnTable);
-                    FinalResult();
+                    FinalResult($" won {TexasHoldem.bank} monets!");
 
                 }
                 catch (OnePlayerException ex)
                 {
-                    Console.SetCursorPosition(0, cords.Item2 + 2);
-                    Console.WriteLine(ex.Message);
-                    EnterPress();
+                    Console.Clear();
+                    FinalResult(ex.Message);
                 }
                 finally
                 {
@@ -158,7 +156,7 @@ namespace Poker
         } // Starting round for player
         public static void DealCards()
         {
-            BankShow(false, "Croupier deals the cards . . .\n");
+            BankShow(false);
             Thread.Sleep(2000);
             int i = 1;
 
@@ -403,6 +401,19 @@ namespace Poker
             {
                 Dictionary<Player, bool> activePlayers = ActivePlayersToDictionary();
                 var cords = Console.GetCursorPosition();
+                for (int i = 0; i < activePlayers.Count; i++)
+                {
+                    Player player = activePlayers.Keys.ElementAt(i);
+                    if (player.LastMove == Move.AllIn)
+                    {
+                        Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.Write(Move.AllIn);
+                        Console.ResetColor();
+                    }
+                }
+
+                activePlayers = activePlayers.Where(x => x.Key.LastMove != Move.AllIn).ToDictionary();
                 Random random = new Random();
 
                 for (int i = 0; i < activePlayers.Count; i++)
@@ -480,7 +491,7 @@ namespace Poker
                             amount = listOfPlayers.Where(x => !x.IsPlayer && x.LastMove != Move.Pass).Max(x => x.Monets);
 
                         string move = amount == listOfPlayers[0].Monets ? Move.AllIn.ToString() : amount.ToString();
-                        Console.WriteLine(move + "\n");
+                        Console.WriteLine(move + "    \n");
                         Console.ResetColor();
                         cords = Console.GetCursorPosition();
                         Console.WriteLine("Waiting for the rest of the players . . .");
@@ -496,7 +507,7 @@ namespace Poker
                     break;
                 }
                 RaiseComputer(amount, cursor); 
-                Console.SetCursorPosition(0, cords.Item2);
+                Console.SetCursorPosition(0, cords.Item2 + 2);
             }
             else // Raise money for computer
             {
@@ -521,7 +532,7 @@ namespace Poker
                 Thread.Sleep(2000);
 
                 Player computer = listOfPlayers.Where(x => x.LastMove == Move.Raise).FirstOrDefault();
-                Console.SetCursorPosition(cursor[computer].Item1, cursor[computer].Item2); // Setting curosr position
+                Console.SetCursorPosition(cursor[computer].Item1, cursor[computer].Item2); // Setting cursor position
 
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"Raised {monets} monets!"); // Information about monets
@@ -554,16 +565,14 @@ namespace Poker
                 }
                 Console.SetCursorPosition(0, cords.Item2 + 2);
             }
+            EnterPress();
         } // Choosing who was first to raise
-        private static void BankShow(bool x = true, string additionalString = "")
+        private static void BankShow(bool x = true)
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine($"Bank: {bank}");
             Console.ResetColor();
             Console.WriteLine($"Your money: {listOfPlayers[0].Monets}\n");
-
-            if(!string.IsNullOrEmpty(additionalString))
-                Console.WriteLine(additionalString);
 
             if (x)
                 listOfPlayers[0].ShowDeck();
@@ -753,32 +762,28 @@ namespace Poker
                 }
             }
         } // Showing all players
-        private static void CheckPlayers()
+        private static void FinalResult(string message)
         {
-            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),"Rozdania");
-            string body = string.Empty;
-            foreach(Player player in listOfPlayers)
-            {
-                body += $"{player.Name}\n\n{player.Deck[0].Rank} {player.Deck[0].Suit}\n{player.Deck[1].Rank} {player.Deck[1].Suit}\n\n\n";
-            }
-            File.WriteAllText(Path.Combine(path,"Info.txt"), body);
-        } // Additional method to downwrite file with decks into txt file
-        private static void FinalResult()
-        {
+            Console.ForegroundColor = ConsoleColor.DarkMagenta;
+            Console.WriteLine(Card.infoDeck);
+            Console.ResetColor();
+
             foreach(var player in listOfPlayers)
             {
-                Console.Write(player.Name);
+                Console.Write(player.Name + " ");
                 if(player.LastMove == Move.Pass)
                     Console.WriteLine($"({player.LastMove})");
                 player.ShowDeck();
                 player.Hand = PokerHandEvaluator.CheckHand(player);
-                Console.WriteLine("Hand: " + player.Hand);
+                Console.ForegroundColor = ConsoleColor.DarkRed;
+                Console.SetCursorPosition(Console.GetCursorPosition().Left, Console.GetCursorPosition().Top - 1);
+                Console.WriteLine("Hand: " + player.Hand + "\n");
+                Console.ResetColor();
             }
 
             Console.WriteLine("\n");
-            Console.WriteLine(Player.ChooseWinner() + $" won {bank} monets!");
-
+            Console.WriteLine(Player.ChooseWinner() + $" {message}");
             EnterPress();
-        }
+        } // Final result for players
     }
 }

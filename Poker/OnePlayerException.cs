@@ -12,7 +12,7 @@ namespace Poker
         {
             get 
             {
-                string messaage = $"{TexasHoldem.listOfPlayers.Where(x => x.LastMove != Move.Pass).First().Name} won {TexasHoldem.bank} monets!";
+                string messaage = $" won {TexasHoldem.bank} monets!";
                 Card.infoDeck = "";
                 return messaage;
             }
