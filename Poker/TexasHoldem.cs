@@ -13,13 +13,16 @@ namespace Poker
         public static int bank; // bank amount
         private static bool chooseOption;
         public static bool firstRaise = false;
-        private static CancellationTokenSource userToken;
-        private static CancellationTokenSource computerToken;
-        private static BlockingCollection<ConsoleKeyInfo> keyBuffer;
+        private static CancellationTokenSource? userToken;
+        private static CancellationTokenSource? computerToken;
+        private static BlockingCollection<ConsoleKeyInfo>? keyBuffer;
         private static (int, int) cords;
+        private static ILogger? logger;
 
         public static void Game(List<Player> players)
         {
+            logger = GetLogger(); // setting logger
+
             // Players added to main list
             listOfPlayers = players;
 
@@ -38,6 +41,7 @@ namespace Poker
                 {
                     // Setting fold for everyone
                     Player.SetFold(true);
+                    logger.LogMessage("");
 
                     // Checking whether our player is enable to play
                     bool IsPlaying = StartRoundMenu();
@@ -785,5 +789,9 @@ namespace Poker
             Console.WriteLine(Player.ChooseWinner() + $" {message}");
             EnterPress();
         } // Final result for players
+        private static ILogger GetLogger()
+        {
+            return new ConsoleLogger();
+        } // Get class of logger
     }
 }
