@@ -110,7 +110,7 @@ namespace Poker
                         return Monets == 0 ? Move.Fold : Move.Raise;
                 }
             }
-        } // Logic for computer to choose move when deck will be raised
+        } // Logic for computer to choose move when deck will be raised !!!!!!!!!!!!!!!
         private Move ChooseMove(HandRank handRank, int value, int valueOfCards, int lvlRate)
         {
             if ((int)handRank >= 1 && 2 + lvlRate >= (int)handRank)
@@ -197,7 +197,7 @@ namespace Poker
                         return Monets == 0 ? Move.Fold : Move.Raise;
                 }
             }
-        } // Logic for computer to choose move ( additionals cards on table)
+        } // Logic for computer to choose move ( additionals cards on table) !!!!!!!!!!!!!!
         public Move CallOrPass(int amount)
         {
             // Adding the highest hand rank
@@ -242,14 +242,14 @@ namespace Poker
 
             return move;
 
-        } // Feature to choose pass or call for computer
+        } // Feature to choose pass or call for computer !!!!!!!!!!!!!!!!!!!!!!
         private Move Bluff(int value)
         {
             if (value >= 7)
                 return Move.Call;
             else
                 return Move.Pass;
-        } // Method to choose bluff
+        } // Method to choose bluff !!!!!!!!!!!!!!!!!!!!!!!!!!!!
         public static void CreatingDeck()
         {
             var suits = Enum.GetValues(typeof(Suit));
