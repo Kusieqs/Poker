@@ -9,9 +9,8 @@ namespace Poker
     internal interface ILogger
     {
         void LogMessage(string message);
-        void LogMove();
-        void LogDecks();
-        void LogHand();
-        void LogProbability();
+        void LogMove(string message);
+        void LogDecks(string message);
+        void LogHand(string message);
     }
 }

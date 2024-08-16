@@ -34,17 +34,24 @@ namespace Poker
         public static void EngineOfGame()
         {
             Console.Clear();
+
             // Game engine
             do
             {
+                if (logger is FileLogger)
+                    FileLogger.CreatingTxtFile();
+
+                logger?.LogMessage($"Game at: {DateTime.Now}");
+
                 try
                 {
                     // Setting fold for everyone
                     Player.SetFold(true);
-                    logger.LogMessage("");
+                    logger?.LogMove("Move of players:");
 
                     // Checking whether our player is enable to play
                     bool IsPlaying = StartRoundMenu();
+                    logger?.LogMove("Move of active players:");
 
                     // Exit game
                     if (!IsPlaying)
@@ -60,9 +67,11 @@ namespace Poker
 
                     // Dealing cards to decks
                     DealCards();
+                    logger?.LogDecks("Decks of players:");
 
                     // Take move from players
                     OptionsInGame(true, 0);
+                    logger?.LogMove("Move of players (After saw decks):");
                     Console.Clear();
                     BankShow();
 
@@ -76,6 +85,7 @@ namespace Poker
                     }
                     Card.DrawCardOnTable(cardsOnTable, 2000);
                     OptionsInGame(true, 1);
+                    logger?.LogMove("Move of players (After 3 cards on table):");
                     Console.Clear();
 
                     // Croupier deals 1 card on the table
@@ -90,12 +100,13 @@ namespace Poker
                         cardsOnTable.Add(card);
                         Card.DrawCardOnTable(cardsOnTable, 2000);
                         OptionsInGame(false, i + 2);
+                        logger?.LogMove($"Move of players (After {i + 4} cards on table):");
                         Console.Clear();
                     }
 
                     BankShow(false);
                     Card.DrawCardOnTable(cardsOnTable);
-                    FinalResult($" won {TexasHoldem.bank} monets!");
+                    FinalResult($" won {bank} monets!");
 
                 }
                 catch (OnePlayerException ex)
@@ -162,7 +173,6 @@ namespace Poker
         {
             BankShow(false);
             Thread.Sleep(2000);
-            int i = 1;
 
             foreach (Player player in listOfPlayers)
             {
@@ -276,7 +286,7 @@ namespace Poker
                         if (Move.Raise == moveEnum)
                         {
                             firstRaise = true;
-                            computerToken.Cancel(); // Deleting computer async method
+                            computerToken?.Cancel(); // Deleting computer async method
                         }
                         else if (Move.Pass == moveEnum && listOfPlayers.Where(x => x.LastMove != Move.Pass).Count() == 1)
                             throw new OnePlayerException();
@@ -290,7 +300,7 @@ namespace Poker
                     }
                     catch (OnePlayerException)
                     {
-                        computerToken.Cancel();
+                        computerToken?.Cancel();
                         return;
                     }
                 }
@@ -349,7 +359,7 @@ namespace Poker
                         if (Enum.Parse<Move>(move) == Move.Raise)
                         {
                             firstRaise = true;
-                            userToken.Cancel();
+                            userToken?.Cancel();
                             break;
                         }
                         else if (Move.Pass == Enum.Parse<Move>(move) && listOfPlayers.Where(x => x.LastMove != Move.Pass).Count() == 1)
@@ -365,7 +375,7 @@ namespace Poker
                 }
                 catch (OnePlayerException)
                 {
-                    userToken.Cancel();
+                    userToken?.Cancel();
                     return;
                 }
             },token);
@@ -635,7 +645,7 @@ namespace Poker
                     }
                     catch (OnePlayerException)
                     {
-                        computerToken.Cancel();
+                        computerToken?.Cancel();
                         return;
                     }
                 } while (true);
@@ -695,7 +705,7 @@ namespace Poker
                 }
                 catch (OnePlayerException)
                 {
-                    userToken.Cancel();
+                    userToken?.Cancel();
                     return;
                 }                
             },token);
@@ -739,7 +749,7 @@ namespace Poker
 
             } while (true);
 
-        } // setting amount of monets for comupter
+        } // setting amount of monets for comupter !!!!!!!!!!!!!!!!!!!
         private static void EnterPress(string message = "Click Enter to continue")
         {
             Console.ForegroundColor = ConsoleColor.DarkCyan;
