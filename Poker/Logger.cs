@@ -59,29 +59,58 @@ namespace Poker
     }
     internal class FileLogger : ILogger
     {
-        private static string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        private static string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "PokerLog");
+        private static string time;
         public void LogDecks(string message)
         {
+            string decks = "";
+            foreach (var players in TexasHoldem.listOfPlayers)
+            {
+                decks += players.Name + "\n";
+                
+                for(int i = 0; i < players.Deck.Length; i++)
+                {
+                    decks += players.Deck[i].Rank.ToString() + players.Deck[i].Suit.ToString() + "\n";
+                }
+                decks += "\n\n";
+            }
+            File.AppendAllText(Path.Combine(path, time),(message + "\n\n" + decks));
         }
 
         public void LogHand(string message)
         {
+            string hand = "";
+            foreach (var players in TexasHoldem.listOfPlayers)
+            {
+                hand += players.Name + "\n";
+                hand += PokerHandEvaluator.CheckHand(players) + "\n\n";
+            }
+            File.AppendAllText(Path.Combine(path, time), (message + "\n" + hand));
         }
 
         public void LogMessage(string message)
         {
+            File.AppendAllText(Path.Combine(path, time), message);
         }
 
         public void LogMove(string message)
         {
+            string move = "";
+            foreach (var players in TexasHoldem.listOfPlayers)
+            {
+                move += players.Name + "\n";
+                move += players.LastMove + "\n\n";
+            }
+            File.AppendAllText(Path.Combine(path, time), (message + "\n" + move));
         }
 
         public static void CreatingTxtFile()
         {
-            if (!Directory.Exists(Path.Combine(path, "PokerLog")))
-                Directory.CreateDirectory(Path.Combine(path, "PokerLog"));
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
 
-            File.WriteAllText(Path.Combine(path, $"{DateTime.Now}"), "");
+            time = DateTime.Now.ToString();
+            File.WriteAllText(Path.Combine(path, $"{time}"), "");
         }
 
         // probability
