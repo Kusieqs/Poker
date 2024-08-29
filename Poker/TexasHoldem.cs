@@ -801,7 +801,7 @@ namespace Poker
         } // Final result for players
         private static ILogger GetLogger()
         {
-            return new ConsoleLogger();
+            return new FileLogger();
         } // Get class of logger
     }
 }
