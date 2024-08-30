@@ -486,9 +486,9 @@ namespace Poker
                 {
                     Console.Clear();
                     BankShow(); // Showing Bank
+                    Card.DrawCardOnTable(cardsOnTable, justShow:true);
                     Console.WriteLine();
                     ShowingPlayers(cursor); // Showing players
-
                     Console.Write("\nWrite amount of monets (min 10 monets): ");
 
                     cords = Console.GetCursorPosition();
@@ -527,6 +527,8 @@ namespace Poker
             {
                 Console.Clear();
                 BankShow(); // Bank Show
+                Card.DrawCardOnTable(cardsOnTable, justShow: true);
+                Console.WriteLine();
                 ShowingPlayers(cursor); // Showing Players
                 cords = Console.GetCursorPosition(); // Setting cords
                 HandRank handRank = PokerHandEvaluator.CheckHand(listOfPlayers.Where(x => x.LastMove == Move.Raise).First()); // Hand rank for computer
@@ -786,7 +788,7 @@ namespace Poker
             {
                 Console.Write(player.Name + " ");
                 if(player.LastMove == Move.Pass)
-                    Console.WriteLine($"({player.LastMove})");
+                    Console.Write($"({player.LastMove}) ");
                 player.ShowDeck();
                 player.Hand = PokerHandEvaluator.CheckHand(player);
                 Console.ForegroundColor = ConsoleColor.DarkRed;

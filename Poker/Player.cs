@@ -28,7 +28,7 @@ namespace Poker
         }
         public void ShowDeck()
         {
-            Console.WriteLine("Your deck: ");
+            Console.WriteLine("Deck:");
             for (int i = 0; i < Deck.Length;i++)
             {
                 Deck[i].DrawCard();
@@ -328,28 +328,38 @@ namespace Poker
             Console.WriteLine($"{Rank}\t{Suit}");
             Console.ResetColor();
         } // draw card
-        public static void DrawCardOnTable(List<Card> listOfCards, int sleep = 0)
+        public static void DrawCardOnTable(List<Card> listOfCards, int sleep = 0, bool justShow = false)
         {
-            var cords = Console.GetCursorPosition();
-            switch(listOfCards.Count)
+            if(!justShow)
             {
-                case 3:
-                    foreach (Card card in listOfCards)
-                    {
+                var cords = Console.GetCursorPosition();
+                switch (listOfCards.Count)
+                {
+                    case 3:
+                        foreach (Card card in listOfCards)
+                        {
+                            Thread.Sleep(sleep);
+                            card.DrawCard(ConsoleColor.DarkMagenta);
+                            infoDeck += $"{card.Rank}\t{card.Suit}\n";
+                        }
+                        break;
+                    case 4:
+                    case 5:
                         Thread.Sleep(sleep);
-                        card.DrawCard(ConsoleColor.DarkMagenta);
-                        infoDeck += $"{card.Rank}\t{card.Suit}\n";
-                    }
-                    break;
-                case 4:
-                case 5:
-                    Thread.Sleep(sleep);
-                    infoDeck += $"{listOfCards[listOfCards.Count - 1].Rank}\t{listOfCards[listOfCards.Count - 1].Suit}\n";
-                    listOfCards[listOfCards.Count - 1].DrawCard(ConsoleColor.DarkMagenta);
-                    break;
+                        infoDeck += $"{listOfCards[listOfCards.Count - 1].Rank}\t{listOfCards[listOfCards.Count - 1].Suit}\n";
+                        listOfCards[listOfCards.Count - 1].DrawCard(ConsoleColor.DarkMagenta);
+                        break;
 
+                }
+                Console.SetCursorPosition(cords.Left, cords.Top);
             }
-            Console.SetCursorPosition(cords.Left, cords.Top);
+            else
+            {
+                foreach (Card card in listOfCards)
+                {
+                    card.DrawCard(ConsoleColor.DarkMagenta);
+                }
+            }
         } // draw cards on the table
         public static void ShowTable()
         {

@@ -60,7 +60,7 @@ namespace Poker
     internal class FileLogger : ILogger
     {
         private static string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "PokerLog");
-        private static string time;
+        private static string ?time;
         public void LogDecks(string message)
         {
             string decks = "";
@@ -74,7 +74,7 @@ namespace Poker
                 }
                 decks += "\n\n";
             }
-            File.AppendAllText(Path.Combine(path, time.ToString().Split(' ')[0] + "_" + time.ToString().Split(' ')[1] + ".txt"),(message + "\n\n" + decks));
+            File.AppendAllText(Path.Combine(path, time.ToString().Split(' ')[0] + "_" + (time.ToString().Split(' ')[1]).Replace(':', '_') + ".txt"),(message + "\n\n" + decks));
         }
 
         public void LogHand(string message)
@@ -85,12 +85,12 @@ namespace Poker
                 hand += players.Name + "\n";
                 hand += PokerHandEvaluator.CheckHand(players) + "\n\n";
             }
-            File.AppendAllText(Path.Combine(path, time.ToString().Split(' ')[0] + "_" + time.ToString().Split(' ')[1] + ".txt"), (message + "\n" + hand));
+            File.AppendAllText(Path.Combine(path, time.ToString().Split(' ')[0] + "_" + (time.ToString().Split(' ')[1]).Replace(':', '_') + ".txt"), (message + "\n" + hand));
         }
 
         public void LogMessage(string message)
         {
-            File.AppendAllText(Path.Combine(path, time.ToString().Split(' ')[0] + "_" + time.ToString().Split(' ')[1] + ".txt"), message);
+            File.AppendAllText(Path.Combine(path, time.ToString().Split(' ')[0] + "_" + (time.ToString().Split(' ')[1]).Replace(':', '_') + ".txt"), message);
         }
 
         public void LogMove(string message)
@@ -101,7 +101,7 @@ namespace Poker
                 move += players.Name + "\n";
                 move += players.LastMove + "\n\n";
             }
-            File.AppendAllText(Path.Combine(path, time.ToString().Split(' ')[0] + "_" + time.ToString().Split(' ')[1] + ".txt"), (message + "\n" + move));
+            File.AppendAllText(Path.Combine(path, time.ToString().Split(' ')[0] + "_" + (time.ToString().Split(' ')[1]).Replace(':', '_') + ".txt"), (message + "\n" + move));
         }
 
         public static void CreatingTxtFile()
@@ -110,7 +110,7 @@ namespace Poker
                 Directory.CreateDirectory(path);
 
             time = DateTime.Now.ToString();
-            File.WriteAllText(Path.Combine(path, time.ToString().Split(' ')[0] + "_" + time.ToString().Split(' ')[1] + ".txt"), "");
+            File.WriteAllText(Path.Combine(path, time.ToString().Split(' ')[0] + "_" + (time.ToString().Split(' ')[1]).Replace(':','_') + ".txt"), "");
         }
 
         // probability
