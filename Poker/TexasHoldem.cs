@@ -364,11 +364,11 @@ namespace Poker
 
                 // Setting call
                 if ((int)handRank >= 0 && (int)handRank <= 3)
-                    monets = StrongCall(0.3, monets);
+                    monets = NumericData.StrongCall(0.3, monets);
                 else if ((int)handRank >= 4 && (int)handRank <= 8)
-                    monets = StrongCall(0.6, monets);
+                    monets = NumericData.StrongCall(0.6, monets);
                 else
-                    monets = StrongCall(1, monets);
+                    monets = NumericData.StrongCall(1, monets);
 
                 monets = (monets / 10) * 10;
 
@@ -421,46 +421,6 @@ namespace Poker
             }
             return activePlayers;
         } // Setting active players to dictionary
-        private static int StrongCall(double procent, int monets)
-        {
-            Random random = new Random();
-            int amount = (int)Math.Round(((monets * procent)/10)*10);
-            int probability = random.Next(1, 11);
-            do
-            {
-                int raise = 0;
-                switch (procent)
-                {
-                    case 0.3:
-                        if (probability >= 1 && probability <= 6)
-                            raise = (random.Next(1, amount) / 10) * 10;
-                        else
-                            raise = amount;
-                        break;
-                    case 0.6:
-                        if (probability >= 1 && probability <= 6)
-                            raise = (random.Next(1, amount) / 10) * 10;
-                        else if (probability == 10)
-                            raise = monets;
-                        else
-                            raise = amount;
-                        break;
-                    case 1:
-                        if (probability >= 1 && probability <= 6)
-                            raise = (random.Next(1, amount) / 10) * 10;
-                        else if (probability == 7 || probability == 8)
-                            raise = monets;
-                        else
-                            raise = amount;
-                        break;
-                }
-
-                if (raise >= 10)
-                    return raise;
-
-            } while (true);
-
-        } // setting amount of monets for comupter !!!!!!!!!!!!!!!!!!!
         public static void StartReadingKeys()
         {
             Task.Run(() =>

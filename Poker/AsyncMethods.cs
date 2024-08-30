@@ -277,6 +277,5 @@ namespace Poker
             }, token);
         } // Computer method to choose Call (Allin) or pass
 
-
     }
 }
