@@ -1,4 +1,4 @@
-# Poker Project - Texas Hold'em
+# Poker Project - Texas Hold'em (still in the making)
 
 ### Console version
 
