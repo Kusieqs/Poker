@@ -114,39 +114,6 @@ namespace Poker
                 TexasHoldem.listOfPlayers[i].LastMove = Move.Fold;
             }
         } // Set fold for all players
-        public static string ChooseWinner()
-        {
-            Player winner = null;
-
-            for (int i = 0; i < TexasHoldem.listOfPlayers.Count; i ++)
-            {
-                if (TexasHoldem.listOfPlayers[i].LastMove == Move.Pass)
-                    continue;
-
-                if (i == 0)
-                {
-                    winner = TexasHoldem.listOfPlayers[i];
-                    continue;
-                }
-
-                if ((int)winner.Hand == (int)TexasHoldem.listOfPlayers[i].Hand)
-                {
-                    // dla najwyzeszj karty inaczej, dla par inaczej,
-                    // wyznaczenie zwyciescy = przelanie mu pieniedzy
-                    int winnerHand = (int)winner.Deck[0].Rank + (int)winner.Deck[1].Rank;
-                    int otherHand = (int)TexasHoldem.listOfPlayers[i].Deck[0].Rank + (int)TexasHoldem.listOfPlayers[i].Deck[1].Rank;
-
-                    if (winnerHand < otherHand)
-                        winner = TexasHoldem.listOfPlayers[i];
-                }
-                else if ((int)winner.Hand < (int)TexasHoldem.listOfPlayers[i].Hand)
-                    winner = TexasHoldem.listOfPlayers[i];
-            }
-
-            TexasHoldem.listOfPlayers.Where(x => x.Name != winner.Name).Select(x => x.LastMove = Move.Pass);
-
-            return winner.Name;
-        }
 
     }
 

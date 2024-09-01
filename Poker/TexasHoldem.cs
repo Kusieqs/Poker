@@ -491,10 +491,7 @@ namespace Poker
             }
 
             Console.WriteLine("\n");
-            Console.WriteLine(Player.ChooseWinner() + $" {message}");
-
-            // ? wygranie monet
-
+            Console.WriteLine(SetWinner.ChooseWinner() + $" {message}");
             EnterPress();
         } // Final result for players
         private static ILogger GetLogger()
