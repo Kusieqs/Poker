@@ -278,7 +278,7 @@ namespace Poker
                         }
                     }
 
-                    Move callOrPass = listOfPlayers.Where(x => x.Name == name).First().CallOrPass(amount);
+                    Move callOrPass = listOfPlayers.Where(x => x.Name == name).First().CallOrPass(amount, player.Monets);
 
                     if (callOrPass == Move.Call || callOrPass == Move.AllIn)
                         listOfPlayers.Where(x => x.Name == name).First().RaiseMoney(amount);
@@ -492,6 +492,9 @@ namespace Poker
 
             Console.WriteLine("\n");
             Console.WriteLine(Player.ChooseWinner() + $" {message}");
+
+            // ? wygranie monet
+
             EnterPress();
         } // Final result for players
         private static ILogger GetLogger()

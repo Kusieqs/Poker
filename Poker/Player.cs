@@ -116,7 +116,8 @@ namespace Poker
         } // Set fold for all players
         public static string ChooseWinner()
         {
-            string winner = string.Empty;
+            Player winner = null;
+
             for (int i = 0; i < TexasHoldem.listOfPlayers.Count; i ++)
             {
                 if (TexasHoldem.listOfPlayers[i].LastMove == Move.Pass)
@@ -124,21 +125,27 @@ namespace Poker
 
                 if (i == 0)
                 {
-                    winner = TexasHoldem.listOfPlayers[i].Name;
+                    winner = TexasHoldem.listOfPlayers[i];
                     continue;
                 }
 
-                if ((int)TexasHoldem.listOfPlayers.Where(x => x.Name == winner).First().Hand == (int)TexasHoldem.listOfPlayers[i].Hand)
+                if ((int)winner.Hand == (int)TexasHoldem.listOfPlayers[i].Hand)
                 {
-                    // metoda ktora bedzie nam porownywac jaki kolor albo wielkosc kart albo reszte (Stworzenie klasy do tego + )//
+                    // dla najwyzeszj karty inaczej, dla par inaczej,
+                    // wyznaczenie zwyciescy = przelanie mu pieniedzy
+                    int winnerHand = (int)winner.Deck[0].Rank + (int)winner.Deck[1].Rank;
+                    int otherHand = (int)TexasHoldem.listOfPlayers[i].Deck[0].Rank + (int)TexasHoldem.listOfPlayers[i].Deck[1].Rank;
+
+                    if (winnerHand < otherHand)
+                        winner = TexasHoldem.listOfPlayers[i];
                 }
-                else if ((int)TexasHoldem.listOfPlayers.Where(x => x.Name == winner).First().Hand < (int)TexasHoldem.listOfPlayers[i].Hand)
-                    winner = TexasHoldem.listOfPlayers[i].Name;
+                else if ((int)winner.Hand < (int)TexasHoldem.listOfPlayers[i].Hand)
+                    winner = TexasHoldem.listOfPlayers[i];
             }
 
-            TexasHoldem.listOfPlayers.Where(x => x.Name != winner).Select(x => x.LastMove = Move.Pass);
+            TexasHoldem.listOfPlayers.Where(x => x.Name != winner.Name).Select(x => x.LastMove = Move.Pass);
 
-            return winner;
+            return winner.Name;
         }
 
     }

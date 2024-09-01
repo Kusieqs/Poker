@@ -253,7 +253,7 @@ namespace Poker
                         }
                         await Task.Delay(random.Next(1000, 5000));
 
-                        Move callOrPass = TexasHoldem.listOfPlayers.Where(x => x.Name == name).First().CallOrPass(amount);
+                        Move callOrPass = TexasHoldem.listOfPlayers.Where(x => x.Name == name).First().CallOrPass(amount, player.Monets);
                         string move = callOrPass.ToString();
 
                         if (callOrPass == Move.Call)
