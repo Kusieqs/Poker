@@ -114,7 +114,6 @@ namespace Poker
                 TexasHoldem.listOfPlayers[i].LastMove = Move.Fold;
             }
         } // Set fold for all players
-
     }
 
     public class Card
