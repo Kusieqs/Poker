@@ -27,23 +27,63 @@ namespace Poker
         private static bool IsRoyalFlush(Card[] hand, Card[] checkTable)
         {
             return IsStraightFlush(hand, checkTable) && hand.Min(card => card.Rank) == Rank.Ten;
-        }
+        } // 
         private static bool IsStraightFlush(Card[] hand, Card[] checkTable)
         {
             return IsFlush(hand, checkTable) && IsStraight(hand, checkTable);
-        }
-        private static bool IsFourOfAKind(Card[] hand, Card[] checkTable)
+        } //
+        private static bool IsFourOfAKind(Card[] hand, Card[] table)
         {
-            return hand.GroupBy(card => card.Rank).Any(group => group.Count() == 4);
+            if (hand[0].Rank == hand[1].Rank && table.Where(x => x.Rank == hand[0].Rank).Count() == 2)
+                return true;
+            else
+            {
+                int fourCards = 1;
+
+                foreach (var card in hand)
+                {
+                    foreach (var tableRank in table)
+                    {
+                        if (card.Rank == tableRank.Rank)
+                            fourCards++;
+
+                        if (fourCards == 4)
+                            return true;
+                    }
+                    fourCards = 1;
+                }
+            }
+
+            return false;
         }
-        private static bool IsFullHouse(Card[] hand, Card[] checkTable)
+        private static bool IsFullHouse(Card[] hand, Card[] table)
         {
-            var rankGroups = hand.GroupBy(card => card.Rank).ToList();
-            return rankGroups.Count == 2 && rankGroups.Any(group => group.Count() == 3);
-        }
-        private static bool IsFlush(Card[] hand, Card[] checkTable)
+            if (hand[0].Rank == hand[1].Rank && table.GroupBy(x => x.Rank).Any(x => x.Count() == 3))
+                return true;
+
+            return false;
+        } // 
+        private static bool IsFlush(Card[] hand, Card[] table)
         {
-            return hand.GroupBy(card => card.Suit).Count() == 1;
+            Dictionary<Suit,int> keyValuePairs = new Dictionary<Suit,int>();
+            foreach(var card in hand)
+            {
+                if (!keyValuePairs.ContainsKey(card.Suit))
+                    keyValuePairs.Add(card.Suit, 1);
+                else
+                    keyValuePairs[card.Suit] += 1;
+            }
+
+            foreach(var tablecard in table)
+            {
+                if (keyValuePairs.ContainsKey(tablecard.Suit))
+                    keyValuePairs[tablecard.Suit] += 1;
+            }
+
+            if (keyValuePairs.Any(x => x.Value >= 5))
+                return true;
+
+            return false;
         }
         private static bool IsStraight(Card[] hand, Card[] checkTable)
         {
@@ -54,7 +94,8 @@ namespace Poker
                     return false;
             }
             return true;
-        }
+
+        } //
         private static bool IsThreeOfAKind(Card[] hand, Card[] table)
         {
 
@@ -102,7 +143,10 @@ namespace Poker
         }
         private static bool IsOnePair(Card[] hand, Card[] table)
         {
-            foreach(var card in hand)
+            if (hand[0].Rank == hand[1].Rank)
+                return true;
+
+            foreach (var card in hand)
             {
                 foreach(var tableRank in table)
                 {
@@ -110,9 +154,6 @@ namespace Poker
                         return true;
                 }
             }
-
-            if (hand[0].Rank == hand[1].Rank)
-                return true;
 
             return false;
         }
