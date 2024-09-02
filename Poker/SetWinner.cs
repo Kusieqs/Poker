@@ -93,10 +93,9 @@ namespace Poker
             else
             {
                 return null;
-                // metoda na suit
+                // sprawdzenie drugiej karty -> jesli taka sama to suit
             }
         }
-
         public static Player OnePair(Player winner, Player player)
         {
             var decks = ListConverter(winner, player);
@@ -120,10 +119,9 @@ namespace Poker
             else
             {
                 return null;
-                // suit
+                // sprawdzenie drugiej karty -> jesli taka sama to suit
             }
         }
-
         public static Player TwoPair(Player winner, Player player)
         {
             var decks = ListConverter(winner, player);
@@ -153,10 +151,9 @@ namespace Poker
             else
             {
                 return null;
-                // suit
+                // sprawdzenie drugiej pary, potem suit
             }
         }
-
         public static Player ThreeOfAKind(Player winner, Player player)
         {
             var decks = ListConverter(winner, player);
@@ -175,25 +172,26 @@ namespace Poker
 
             if (winnerRank < playerRank)
                 return player;
+            else  
+                return winner;
+        }
+        public static Player Straight(Player winner, Player player)
+        {
+            var decks = ListConverter(winner, player);
+
+            int winnerRank = StraightAndFlushHighRank(decks.Item1);
+            int playerRank = StraightAndFlushHighRank(decks.Item2);
+
+            if (winnerRank < playerRank)
+                return player;
             else if (winnerRank > playerRank)
                 return winner;
             else
             {
                 return null;
-                // suit
+                // sprawdzenie drugiej karty -> potem suit
             }
         }
-
-        public static Player Straight(Player winner, Player player)
-        {
-            var decks = ListConverter(winner, player);
-            decks.Item1 = decks.Item1.OrderBy(x => x.Rank).ToList();
-            decks.Item2 = decks.Item2.OrderBy(x => x.Rank).ToList();
-            // Pomyslenie
-
-            return null;
-        }
-
         public static Player Flush(Player winner, Player player)
         {
             var decks = ListConverter(winner, player);
@@ -226,12 +224,42 @@ namespace Poker
                 // suit
             }
         }
-
         public static Player FullHouse(Player winner, Player player)
         {
-            return null;
-        }
+            var decks = ListConverter(winner, player);
 
+            var winnerList = decks.Item1
+            .GroupBy(x => x.Rank)
+            .OrderByDescending(group => group.Count())
+            .OrderByDescending(group => group.Key)
+            .ToList();
+
+            var winnerThreeOfAKind = winnerList.FirstOrDefault(group => group.Count() == 3)?.Key ?? 0;
+            var winnerPair = winnerList.FirstOrDefault(group => group.Count() == 2)?.Key ?? 0;
+
+            var playerList = decks.Item2
+            .GroupBy(x => x.Rank)
+            .OrderByDescending(group => group.Count())
+            .OrderByDescending(group => group.Key)
+            .ToList();
+
+            var playerThreeOfAKind = playerList.FirstOrDefault(group => group.Count() == 3)?.Key ?? 0;
+            var playerPair = playerList.FirstOrDefault(group => group.Count() == 2)?.Key ?? 0;
+
+            if (winnerThreeOfAKind > playerThreeOfAKind)
+                return winner;
+            else if (winnerThreeOfAKind < playerThreeOfAKind)
+                return player;
+            else 
+            {
+                if (winnerPair > playerPair)
+                    return winner;
+                else if (winnerPair < playerPair)
+                    return player;
+                else
+                    return null; // suit
+            }
+        }
         public static Player FourOfAKind(Player winner, Player player)
         {
             var decks = ListConverter(winner, player);
@@ -249,23 +277,53 @@ namespace Poker
 
             if (winnerRank < playerRank)
                 return player;
-            else if (winnerRank > playerRank)
+            else 
                 return winner;
-            else
-            {
-                return null;
-                // suit
-            }
         }
-
         public static Player StraightFlush(Player winner, Player player)
         {
+
+
+            // sprawdzenie drugiej karty
+            // suit
             return null;
         }
 
         public static Player RoyalFlush(Player winner, Player player)
         {
+            // suit
             return null;
+        }
+
+        public static int StraightAndFlushHighRank(List<Card> list)
+        {
+            var playerList = list
+            .Select(card => (int)card.Rank)
+            .Distinct()
+            .OrderBy(rank => rank)
+            .ToList();
+
+            int straightLength = 1;
+            int highestCard = playerList.First();
+
+            for (int i = 1; i < playerList.Count; i++)
+            {
+                if (playerList[i] == playerList[i - 1] + 1)
+                {
+                    straightLength++;
+                    highestCard = playerList[i];
+
+                    if (straightLength == 5)
+                        return highestCard;
+                }
+                else
+                {
+                    straightLength = 1;
+                    highestCard = playerList[i];
+                }
+            }
+
+            return 0;
         }
     }
 }

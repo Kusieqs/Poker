@@ -22,39 +22,41 @@ namespace Poker
                     hand[i] = TexasHoldem.cardsOnTable[i-2];
             }
 
-            if (IsRoyalFlush(hand)) return HandRank.RoyalFlush;
-            if (IsStraightFlush(hand)) return HandRank.StraightFlush;
-            if (IsFourOfAKind(hand)) return HandRank.FourOfAKind;
-            if (IsFullHouse(hand)) return HandRank.FullHouse;
-            if (IsFlush(hand)) return HandRank.Flush;
-            if (IsStraight(hand)) return HandRank.Straight;
-            if (IsThreeOfAKind(hand)) return HandRank.ThreeOfAKind;
-            if (IsTwoPair(hand)) return HandRank.TwoPair;
-            if (IsOnePair(hand)) return HandRank.OnePair;
+            Card[] checkTable = TexasHoldem.cardsOnTable.ToArray();
+
+            if (IsRoyalFlush(hand, checkTable)) return HandRank.RoyalFlush;
+            if (IsStraightFlush(hand, checkTable)) return HandRank.StraightFlush;
+            if (IsFourOfAKind(hand, checkTable)) return HandRank.FourOfAKind;
+            if (IsFullHouse(hand, checkTable)) return HandRank.FullHouse;
+            if (IsFlush(hand, checkTable)) return HandRank.Flush;
+            if (IsStraight(hand, checkTable)) return HandRank.Straight;
+            if (IsThreeOfAKind(hand, checkTable)) return HandRank.ThreeOfAKind;
+            if (IsTwoPair(hand, checkTable)) return HandRank.TwoPair;
+            if (IsOnePair(hand, checkTable)) return HandRank.OnePair;
             return HandRank.HighCard;
         } // Checking rate of cards
-        private static bool IsRoyalFlush(Card[] hand)
+        private static bool IsRoyalFlush(Card[] hand, Card[] checkTable)
         {
-            return IsStraightFlush(hand) && hand.Min(card => card.Rank) == Rank.Ten;
+            return IsStraightFlush(hand, checkTable) && hand.Min(card => card.Rank) == Rank.Ten;
         }
-        private static bool IsStraightFlush(Card[] hand)
+        private static bool IsStraightFlush(Card[] hand, Card[] checkTable)
         {
-            return IsFlush(hand) && IsStraight(hand);
+            return IsFlush(hand, checkTable) && IsStraight(hand, checkTable);
         }
-        private static bool IsFourOfAKind(Card[] hand)
+        private static bool IsFourOfAKind(Card[] hand, Card[] checkTable)
         {
             return hand.GroupBy(card => card.Rank).Any(group => group.Count() == 4);
         }
-        private static bool IsFullHouse(Card[] hand)
+        private static bool IsFullHouse(Card[] hand, Card[] checkTable)
         {
             var rankGroups = hand.GroupBy(card => card.Rank).ToList();
             return rankGroups.Count == 2 && rankGroups.Any(group => group.Count() == 3);
         }
-        private static bool IsFlush(Card[] hand)
+        private static bool IsFlush(Card[] hand, Card[] checkTable)
         {
             return hand.GroupBy(card => card.Suit).Count() == 1;
         }
-        private static bool IsStraight(Card[] hand)
+        private static bool IsStraight(Card[] hand, Card[] checkTable)
         {
             var orderedRanks = hand.Select(card => (int)card.Rank).OrderBy(rank => rank).ToList();
             for (int i = 1; i < orderedRanks.Count; i++)
@@ -64,16 +66,16 @@ namespace Poker
             }
             return true;
         }
-        private static bool IsThreeOfAKind(Card[] hand)
+        private static bool IsThreeOfAKind(Card[] hand, Card[] checkTable)
         {
             return hand.GroupBy(card => card.Rank).Any(group => group.Count() == 3);
         }
-        private static bool IsTwoPair(Card[] hand)
+        private static bool IsTwoPair(Card[] hand, Card[] checkTable)
         {
             var pairs = hand.GroupBy(card => card.Rank).Where(group => group.Count() == 2).ToList();
             return pairs.Count == 2;
         }
-        private static bool IsOnePair(Card[] hand)
+        private static bool IsOnePair(Card[] hand, Card[] checkTable)
         {
             return hand.GroupBy(card => card.Rank).Any(group => group.Count() == 2);
         }
