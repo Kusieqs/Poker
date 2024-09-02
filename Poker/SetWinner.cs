@@ -282,11 +282,20 @@ namespace Poker
         }
         public static Player StraightFlush(Player winner, Player player)
         {
+            var decks = ListConverter(winner, player);
 
+            int winnerRank = StraightAndFlushHighRank(decks.Item1);
+            int playerRank = StraightAndFlushHighRank(decks.Item2);
 
-            // sprawdzenie drugiej karty
-            // suit
-            return null;
+            if (winnerRank < playerRank)
+                return player;
+            else if (winnerRank > playerRank)
+                return winner;
+            else
+            {
+                return null;
+                // sprawdzenie drugiej karty -> potem suit
+            }
         }
 
         public static Player RoyalFlush(Player winner, Player player)
