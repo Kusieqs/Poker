@@ -24,14 +24,14 @@ namespace Poker
             if (IsOnePair(player.Deck, checkTable)) return HandRank.OnePair;
             return HandRank.HighCard;
         } // Checking rate of cards
-        private static bool IsRoyalFlush(Card[] hand, Card[] checkTable)
+        private static bool IsRoyalFlush(Card[] hand, Card[] table)
         {
-            return IsStraightFlush(hand, checkTable) && hand.Min(card => card.Rank) == Rank.Ten;
-        } // 
-        private static bool IsStraightFlush(Card[] hand, Card[] checkTable)
+            return IsStraightFlush(hand, table) && hand.Min(card => card.Rank) == Rank.Ten;
+        } 
+        private static bool IsStraightFlush(Card[] hand, Card[] table)
         {
-            return IsFlush(hand, checkTable) && IsStraight(hand, checkTable);
-        } //
+            return IsFlush(hand, table) && IsStraight(hand, table);
+        } 
         private static bool IsFourOfAKind(Card[] hand, Card[] table)
         {
             if (hand[0].Rank == hand[1].Rank && table.Where(x => x.Rank == hand[0].Rank).Count() == 2)
@@ -58,11 +58,18 @@ namespace Poker
         }
         private static bool IsFullHouse(Card[] hand, Card[] table)
         {
-            if (hand[0].Rank == hand[1].Rank && table.GroupBy(x => x.Rank).Any(x => x.Count() == 3))
+
+            if (IsThreeOfAKind(hand, table) && table.GroupBy(x => x.Rank).Any(x => x.Count() == 2))
+                return true;
+
+            if (IsOnePair(hand, table) && table.GroupBy(x => x.Rank).Any(x => x.Count() == 3))
+                return true;
+
+            if(IsThreeOfAKind(hand, table) && IsOnePair(hand,table))
                 return true;
 
             return false;
-        } // 
+        } 
         private static bool IsFlush(Card[] hand, Card[] table)
         {
             Dictionary<Suit,int> keyValuePairs = new Dictionary<Suit,int>();
@@ -85,17 +92,39 @@ namespace Poker
 
             return false;
         }
-        private static bool IsStraight(Card[] hand, Card[] checkTable)
+        private static bool IsStraight(Card[] hand, Card[] table)
         {
-            var orderedRanks = hand.Select(card => (int)card.Rank).OrderBy(rank => rank).ToList();
-            for (int i = 1; i < orderedRanks.Count; i++)
-            {
-                if (orderedRanks[i] != orderedRanks[i - 1] + 1)
-                    return false;
-            }
-            return true;
+            List<(string, Card)> list = new List<(string, Card)> ();
 
-        } //
+            foreach(var card in hand)
+            {
+                list.Add(("Person", card));
+            }
+
+            foreach(var tablecard in table)
+            {
+                list.Add(("Table", tablecard));
+            }
+
+            list.OrderBy(x => x.Item2.Rank);
+            list.Distinct();
+
+            int rankOfLastCard = 0;
+            List<(string, Card)> copyList = new List<(string, Card)>();
+            foreach(var card in list)
+            {
+                if ((int)card.Item2.Rank + 1 != rankOfLastCard)
+                    copyList.Clear();
+
+                copyList.Add(card);
+                rankOfLastCard = (int)card.Item2.Rank;
+            }
+
+            if (copyList.Count >= 5 && copyList.Any(x => x.Item1 == "Person"))
+                return true;
+
+            return false;
+        } 
         private static bool IsThreeOfAKind(Card[] hand, Card[] table)
         {
 
