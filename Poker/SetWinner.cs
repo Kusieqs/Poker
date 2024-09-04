@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
@@ -35,22 +36,31 @@ namespace Poker
                             winner = HighCard(winner, TexasHoldem.listOfPlayers[i]);
                             break;
                         case HandRank.OnePair:
+                            winner = OnePair(winner, TexasHoldem.listOfPlayers[i]);
                             break;
                         case HandRank.TwoPair:
+                            winner = TwoPair(winner, TexasHoldem.listOfPlayers[i]);
                             break;
                         case HandRank.ThreeOfAKind:
+                            winner = ThreeOfAKind(winner, TexasHoldem.listOfPlayers[i]);
                             break;
                         case HandRank.Straight:
+                            winner = Straight(winner, TexasHoldem.listOfPlayers[i]);
                             break;
                         case HandRank.Flush:
+                            winner = Flush(winner, TexasHoldem.listOfPlayers[i]);
                             break;
                         case HandRank.FullHouse:
+                            winner = FullHouse(winner, TexasHoldem.listOfPlayers[i]);
                             break;
                         case HandRank.FourOfAKind:
+                            winner = FourOfAKind(winner, TexasHoldem.listOfPlayers[i]);
                             break;
                         case HandRank.StraightFlush:
+                            winner = StraightFlush(winner, TexasHoldem.listOfPlayers[i]);
                             break;
                         case HandRank.RoyalFlush: 
+                            // Lack of probability
                             break;
                     }
 
@@ -68,19 +78,6 @@ namespace Poker
 
             return winner.Name;
         }
-
-        public static (List<Card>, List<Card>) ListConverter(Player winner, Player player)
-        {
-            List<Card> winnerDeck = TexasHoldem.cardsOnTable;
-            List<Card> playerDeck = TexasHoldem.cardsOnTable;
-            winnerDeck.Add(winner.Deck[0]);
-            winnerDeck.Add(winner.Deck[1]);
-            playerDeck.Add(player.Deck[0]);
-            playerDeck.Add(player.Deck[1]);
-
-            return (winnerDeck, playerDeck);
-        } // Creating to list of cards 
-
         public static Player HighCard(Player winner, Player player)
         {
             int winnerDeck = (int)winner.Deck.Max(x => x.Rank);
@@ -92,25 +89,54 @@ namespace Poker
                 return winner;
             else
             {
-                return null;
-                // sprawdzenie drugiej karty -> jesli taka sama to suit
+                winnerDeck = (int)winner.Deck.Min(x => x.Rank);
+                playerDeck = (int)player.Deck.Min(x => x.Rank);
+
+                if(winnerDeck < playerDeck)
+                    return winner;
+                else if(winnerDeck > playerDeck)
+                    return winner;
+                else
+                {
+                    // suit
+                    return null;
+                }
             }
         }
         public static Player OnePair(Player winner, Player player)
         {
-            var decks = ListConverter(winner, player);
 
-            int winnerRank = decks.Item1
-            .GroupBy(x => x.Rank)
-            .Where(group => group.Count() == 2)
-            .Select(group => (int)group.Key)
-            .FirstOrDefault(); 
+            int winnerRank = 0;
+            int playerRank = 0;
 
-            int playerRank = decks.Item2
-            .GroupBy(x => x.Rank)
-            .Where(group => group.Count() == 2)
-            .Select(group => (int)group.Key)
-            .FirstOrDefault();
+            if (winner.Deck[0].Rank == winner.Deck[1].Rank)
+                winnerRank = (int)winner.Deck[0].Rank;
+            else
+            {
+                foreach (var card in winner.Deck)
+                {
+                    foreach (var tableRank in TexasHoldem.cardsOnTable)
+                    {
+                        if (card.Rank == tableRank.Rank)
+                            winnerRank = (int)tableRank.Rank;
+                    }
+                }
+            }
+
+            if (player.Deck[0].Rank == player.Deck[1].Rank)
+                playerRank = (int)player.Deck[0].Rank;
+            else
+            {
+                foreach (var card in player.Deck)
+                {
+                    foreach (var tableRank in TexasHoldem.cardsOnTable)
+                    {
+                        if (card.Rank == tableRank.Rank)
+                            playerRank = (int)tableRank.Rank;
+                    }
+                }
+            }
+
 
             if (winnerRank < playerRank)
                 return player;
@@ -118,31 +144,36 @@ namespace Poker
                 return winner;
             else
             {
-                return null;
-                // sprawdzenie drugiej karty -> jesli taka sama to suit
+
+                if (winner.Deck[0].Rank == winner.Deck[1].Rank)
+                    winnerRank = (int)winner.Deck[0].Rank;
+                else if ((int)winner.Deck[0].Rank == winnerRank)
+                    winnerRank = (int)winner.Deck[1].Rank;
+                else
+                    winnerRank = (int)winner.Deck[0].Rank;
+
+                if (player.Deck[0].Rank == player.Deck[1].Rank)
+                    playerRank = (int)player.Deck[0].Rank;
+                else if ((int)player.Deck[0].Rank == playerRank)
+                    playerRank = (int)player.Deck[1].Rank;
+                else
+                    playerRank = (int)player.Deck[0].Rank;
+
+                if (winnerRank < playerRank)
+                    return player;
+                else if (winnerRank > playerRank)
+                    return winner;
+                else
+                {
+                    // suit 
+                    return null;
+                }
             }
         }
         public static Player TwoPair(Player winner, Player player)
         {
-            var decks = ListConverter(winner, player);
-
-            var winnerList = decks.Item1
-            .GroupBy(card => card.Rank)
-            .Where(group => group.Count() == 2)
-            .Take(2)
-            .Select(group => (int)group.Key)
-            .ToList();
-
-            int winnerRank = winnerList.Max();
-
-            var playerList = decks.Item2
-            .GroupBy(card => card.Rank)
-            .Where(group => group.Count() == 2)
-            .Take(2)
-            .Select(group => (int)group.Key)
-            .ToList();
-
-            int playerRank = playerList.Max();
+            int winnerRank = (int)winner.Deck.Max(x => x.Rank);
+            int playerRank = (int)player.Deck.Max(x => x.Rank);
 
             if (winnerRank < playerRank)
                 return player;
@@ -150,37 +181,63 @@ namespace Poker
                 return winner;
             else
             {
-                return null;
-                // sprawdzenie drugiej pary, potem suit
+                winnerRank = (int)winner.Deck.Min(x => x.Rank);
+                playerRank = (int)player.Deck.Min(x => x.Rank);
+
+                if (winnerRank < playerRank)
+                    return player;
+                else if (winnerRank > playerRank)
+                    return winner;
+                else
+                {
+                    // suit 
+                    return null;
+                }
             }
         }
         public static Player ThreeOfAKind(Player winner, Player player)
         {
-            var decks = ListConverter(winner, player);
+            int winnerRank = 0;
+            int playerRank = 0;
 
-            int winnerRank = decks.Item1
-            .GroupBy(card => card.Rank)
-            .Where(group => group.Count() == 3)
-            .Select(group => (int)group.Key)
-            .FirstOrDefault();
+            if (winner.Deck[0].Rank == winner.Deck[1].Rank && TexasHoldem.cardsOnTable.Any(x => x.Rank == winner.Deck[0].Rank))
+                winnerRank = (int)winner.Deck[0].Rank;
+            else
+            {
+                int threeCards = 1;
+                foreach (var card in winner.Deck)
+                {
+                    foreach (var tableRank in TexasHoldem.cardsOnTable)
+                    {
+                        if (card.Rank == tableRank.Rank)
+                            threeCards++;
 
-            int playerRank = decks.Item2
-            .GroupBy(card => card.Rank)
-            .Where(group => group.Count() == 3)
-            .Select(group => (int)group.Key)
-            .FirstOrDefault();
+                        if (threeCards == 3)
+                            winnerRank = (int)tableRank.Rank;
+                    }
+                    threeCards = 1;
+                }
+            }
 
-            if (winnerRank < playerRank)
-                return player;
-            else  
-                return winner;
-        }
-        public static Player Straight(Player winner, Player player)
-        {
-            var decks = ListConverter(winner, player);
+            if (player.Deck[0].Rank == player.Deck[1].Rank && TexasHoldem.cardsOnTable.Any(x => x.Rank == player.Deck[0].Rank))
+                playerRank = (int)player.Deck[0].Rank;
+            else
+            {
+                int threeCards = 1;
+                foreach (var card in player.Deck)
+                {
+                    foreach (var tableRank in TexasHoldem.cardsOnTable)
+                    {
+                        if (card.Rank == tableRank.Rank)
+                            threeCards++;
 
-            int winnerRank = StraightAndFlushHighRank(decks.Item1);
-            int playerRank = StraightAndFlushHighRank(decks.Item2);
+                        if (threeCards == 3)
+                            playerRank = (int)tableRank.Rank;
+                    }
+                    threeCards = 1;
+                }
+            }
+
 
             if (winnerRank < playerRank)
                 return player;
@@ -188,31 +245,139 @@ namespace Poker
                 return winner;
             else
             {
-                return null;
-                // sprawdzenie drugiej karty -> potem suit
+                if (winner.Deck[0].Rank == winner.Deck[1].Rank)
+                    winnerRank = (int)winner.Deck[0].Rank;
+                else if ((int)winner.Deck[0].Rank == winnerRank)
+                    winnerRank = (int)winner.Deck[1].Rank;
+                else
+                    winnerRank = (int)winner.Deck[0].Rank;
+
+                if (player.Deck[0].Rank == player.Deck[1].Rank)
+                    playerRank = (int)player.Deck[0].Rank;
+                else if ((int)player.Deck[0].Rank == playerRank)
+                    playerRank = (int)player.Deck[1].Rank;
+                else
+                    playerRank = (int)player.Deck[0].Rank;
+
+                if (winnerRank < playerRank)
+                    return player;
+                else if (winnerRank > playerRank)
+                    return winner;
+                else
+                {
+                    // suit 
+                    return null;
+                }
+            }
+        }
+        public static Player Straight(Player winner, Player player)
+        {
+            List<(string, Card)> listWinner = new List<(string, Card)>();
+            List<(string, Card)> listPlayer = new List<(string, Card)>();
+
+            foreach (var card in winner.Deck)
+            {
+                listWinner.Add(("Person", card));
+            }
+            foreach (var card in player.Deck)
+            {
+                listPlayer.Add(("Person", card));
+            }
+            foreach (var tablecard in TexasHoldem.cardsOnTable)
+            {
+                listPlayer.Add(("Table", tablecard));
+                listWinner.Add(("Table", tablecard));
+            }
+
+
+            listWinner.OrderBy(x => x.Item2.Rank).Distinct();
+            listPlayer.OrderBy(x => x.Item2.Rank).Distinct();
+
+            int winnerRank = 0;
+            List<(string, Card)> copyListWinner = new List<(string, Card)>();
+            foreach (var card in listWinner)
+            {
+                if ((int)card.Item2.Rank + 1 != winnerRank)
+                    copyListWinner.Clear();
+
+                copyListWinner.Add(card);
+                winnerRank = (int)card.Item2.Rank;
+            }
+
+            int playerRank = 0;
+            List<(string, Card)> copyListPlayer = new List<(string, Card)>();
+            foreach (var card in listWinner)
+            {
+                if ((int)card.Item2.Rank + 1 != playerRank)
+                    copyListWinner.Clear();
+
+                copyListWinner.Add(card);
+                playerRank = (int)card.Item2.Rank;
+            }
+
+            if (winnerRank < playerRank)
+                return player;
+            else if (winnerRank > playerRank)
+                return winner;
+            else
+            {
+                winnerRank = (int)winner.Deck.Max(x => x.Rank);
+                playerRank = (int)player.Deck.Max(x => x.Rank);
+
+                if (winnerRank < playerRank)
+                    return player;
+                else if (winnerRank > playerRank)
+                    return winner;
+                else
+                {
+                    winnerRank = (int)winner.Deck.Min(x => x.Rank);
+                    playerRank = (int)player.Deck.Min(x => x.Rank);
+
+                    if (winnerRank < playerRank)
+                        return player;
+                    else if (winnerRank > playerRank)
+                        return winner;
+                    else
+                    {
+                        // suit
+                        return null;
+                    }
+                }
             }
         }
         public static Player Flush(Player winner, Player player)
         {
-            var decks = ListConverter(winner, player);
+            Dictionary<Suit, int> winnerKeyValuePairs = new Dictionary<Suit, int>();
+            Dictionary<Suit, int> playerKeyValuePairs = new Dictionary<Suit, int>();
 
-            var winnerList = decks.Item1
-            .GroupBy(x => x.Suit)
-            .Where(x => x.Count() >= 5)
-            .SelectMany(x => x.OrderByDescending(x => x.Rank).Take(5))
-            .Select(x => x.Rank)
-            .ToList();
+            foreach (var card in winner.Deck)
+            {
+                if (!winnerKeyValuePairs.ContainsKey(card.Suit))
+                    winnerKeyValuePairs.Add(card.Suit, 1);
+                else
+                    winnerKeyValuePairs[card.Suit] += 1;
+            }
 
-            int winnerRank = (int)winnerList.Max();
+            foreach (var card in player.Deck)
+            {
+                if (!playerKeyValuePairs.ContainsKey(card.Suit))
+                    playerKeyValuePairs.Add(card.Suit, 1);
+                else
+                    playerKeyValuePairs[card.Suit] += 1;
+            }
 
-            var playerList = decks.Item2
-            .GroupBy(x => x.Suit)
-            .Where(x => x.Count() >= 5)
-            .SelectMany(x => x.OrderByDescending(x => x.Rank).Take(5))
-            .Select(x => x.Rank)
-            .ToList();
 
-            int playerRank = (int)playerList.Max();
+            foreach (var tablecard in TexasHoldem.cardsOnTable)
+            {
+                if (winnerKeyValuePairs.ContainsKey(tablecard.Suit))
+                    winnerKeyValuePairs[tablecard.Suit] += 1;
+
+                if (playerKeyValuePairs.ContainsKey(tablecard.Suit))
+                    playerKeyValuePairs[tablecard.Suit] += 1;
+            }
+
+            int winnerRank = winnerKeyValuePairs.Max(x => x.Value);
+            int playerRank = playerKeyValuePairs.Max(x => x.Value);
 
             if (winnerRank < playerRank)
                 return player;
@@ -220,72 +385,78 @@ namespace Poker
                 return winner;
             else
             {
-                return null;
-                // suit
+                winnerRank = (int)winner.Deck.Max(x => x.Rank);
+                playerRank = (int)player.Deck.Max(x => x.Rank);
+
+                if (winnerRank < playerRank)
+                    return player;
+                else if (winnerRank > playerRank)
+                    return winner;
+                else
+                {
+                    winnerRank = (int)winner.Deck.Min(x => x.Rank);
+                    playerRank = (int)player.Deck.Min(x => x.Rank);
+
+                    if (winnerRank < playerRank)
+                        return player;
+                    else if (winnerRank > playerRank)
+                        return winner;
+                    else
+                    {
+                        // suit
+                        return null;
+                    }
+                }
             }
         }
         public static Player FullHouse(Player winner, Player player)
         {
-            var decks = ListConverter(winner, player);
-
-            var winnerList = decks.Item1
-            .GroupBy(x => x.Rank)
-            .OrderByDescending(group => group.Count())
-            .OrderByDescending(group => group.Key)
-            .ToList();
-
-            var winnerThreeOfAKind = winnerList.FirstOrDefault(group => group.Count() == 3)?.Key ?? 0;
-            var winnerPair = winnerList.FirstOrDefault(group => group.Count() == 2)?.Key ?? 0;
-
-            var playerList = decks.Item2
-            .GroupBy(x => x.Rank)
-            .OrderByDescending(group => group.Count())
-            .OrderByDescending(group => group.Key)
-            .ToList();
-
-            var playerThreeOfAKind = playerList.FirstOrDefault(group => group.Count() == 3)?.Key ?? 0;
-            var playerPair = playerList.FirstOrDefault(group => group.Count() == 2)?.Key ?? 0;
-
-            if (winnerThreeOfAKind > playerThreeOfAKind)
-                return winner;
-            else if (winnerThreeOfAKind < playerThreeOfAKind)
-                return player;
-            else 
-            {
-                if (winnerPair > playerPair)
-                    return winner;
-                else if (winnerPair < playerPair)
-                    return player;
-                else
-                    return null; // suit
-            }
+            return winner;
         }
         public static Player FourOfAKind(Player winner, Player player)
         {
-            var decks = ListConverter(winner, player);
-            int winnerRank = decks.Item1
-            .GroupBy(card => card.Rank)
-            .Where(group => group.Count() == 4)
-            .Select(group => (int)group.Key)
-            .FirstOrDefault();
+            int winnerRank = 0;
+            int playerRank = 0;
 
-            int playerRank = decks.Item2
-            .GroupBy(card => card.Rank)
-            .Where(group => group.Count() == 4)
-            .Select(group => (int)group.Key)
-            .FirstOrDefault();
+            if (winner.Deck[0].Rank == winner.Deck[1].Rank && TexasHoldem.cardsOnTable.Where(x => x.Rank == winner.Deck[0].Rank).Count() == 2)
+                winnerRank = (int)winner.Deck[0].Rank;
+            else
+            {
+                int fourCards = 1;
 
-            if (winnerRank < playerRank)
-                return player;
-            else 
-                return winner;
-        }
-        public static Player StraightFlush(Player winner, Player player)
-        {
-            var decks = ListConverter(winner, player);
+                foreach (var card in winner.Deck)
+                {
+                    foreach (var tableRank in TexasHoldem.cardsOnTable)
+                    {
+                        if (card.Rank == tableRank.Rank)
+                            fourCards++;
 
-            int winnerRank = StraightAndFlushHighRank(decks.Item1);
-            int playerRank = StraightAndFlushHighRank(decks.Item2);
+                        if (fourCards == 4)
+                            winnerRank = (int)tableRank.Rank;
+                    }
+                    fourCards = 1;
+                }
+            }
+
+            if (player.Deck[0].Rank == player.Deck[1].Rank && TexasHoldem.cardsOnTable.Where(x => x.Rank == player.Deck[0].Rank).Count() == 2)
+                playerRank = (int)player.Deck[0].Rank;
+            else
+            {
+                int fourCards = 1;
+
+                foreach (var card in winner.Deck)
+                {
+                    foreach (var tableRank in TexasHoldem.cardsOnTable)
+                    {
+                        if (card.Rank == tableRank.Rank)
+                            fourCards++;
+
+                        if (fourCards == 4)
+                            playerRank = (int)tableRank.Rank;
+                    }
+                    fourCards = 1;
+                }
+            }
 
             if (winnerRank < playerRank)
                 return player;
@@ -293,46 +464,30 @@ namespace Poker
                 return winner;
             else
             {
-                return null;
-                // sprawdzenie drugiej karty -> potem suit
-            }
-        }
+                if ((int)winner.Deck[0].Rank == winnerRank)
+                    winnerRank = (int)winner.Deck[1].Rank;
+                else
+                    winnerRank = (int)winner.Deck[0].Rank;
 
-        public static Player RoyalFlush(Player winner, Player player)
-        {
-            // suit
-            return null;
-        }
+                if ((int)player.Deck[0].Rank == playerRank)
+                    playerRank = (int)player.Deck[1].Rank;
+                else
+                    playerRank = (int)player.Deck[0].Rank;
 
-        public static int StraightAndFlushHighRank(List<Card> list)
-        {
-            var playerList = list
-            .Select(card => (int)card.Rank)
-            .Distinct()
-            .OrderBy(rank => rank)
-            .ToList();
-
-            int straightLength = 1;
-            int highestCard = playerList.First();
-
-            for (int i = 1; i < playerList.Count; i++)
-            {
-                if (playerList[i] == playerList[i - 1] + 1)
-                {
-                    straightLength++;
-                    highestCard = playerList[i];
-
-                    if (straightLength == 5)
-                        return highestCard;
-                }
+                if (winnerRank < playerRank)
+                    return player;
+                else if (winnerRank > playerRank)
+                    return winner;
                 else
                 {
-                    straightLength = 1;
-                    highestCard = playerList[i];
+                    //suit
+                    return null;
                 }
             }
-
-            return 0;
+        }
+        public static Player StraightFlush(Player winner, Player player)
+        {
+            return Straight(winner, player);
         }
     }
 }

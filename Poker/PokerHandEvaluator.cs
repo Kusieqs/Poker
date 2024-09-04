@@ -65,7 +65,7 @@ namespace Poker
             if (IsOnePair(hand, table) && table.GroupBy(x => x.Rank).Any(x => x.Count() == 3))
                 return true;
 
-            if(IsThreeOfAKind(hand, table) && IsOnePair(hand,table))
+            if (IsThreeOfAKind(hand, table) && IsOnePair(hand,table))
                 return true;
 
             return false;
