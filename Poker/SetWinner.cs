@@ -98,8 +98,7 @@ namespace Poker
                     return winner;
                 else
                 {
-                    // suit
-                    return null;
+                    return Suit(winner, player);
                 }
             }
         }
@@ -165,8 +164,7 @@ namespace Poker
                     return winner;
                 else
                 {
-                    // suit 
-                    return null;
+                    return Suit(winner, player);
                 }
             }
         }
@@ -190,8 +188,7 @@ namespace Poker
                     return winner;
                 else
                 {
-                    // suit 
-                    return null;
+                    return Suit(winner,player);
                 }
             }
         }
@@ -265,8 +262,7 @@ namespace Poker
                     return winner;
                 else
                 {
-                    // suit 
-                    return null;
+                    return Suit(winner, player);
                 }
             }
         }
@@ -339,8 +335,7 @@ namespace Poker
                         return winner;
                     else
                     {
-                        // suit
-                        return null;
+                        return Suit(winner, player);
                     }
                 }
             }
@@ -403,8 +398,7 @@ namespace Poker
                         return winner;
                     else
                     {
-                        // suit
-                        return null;
+                        return Suit(winner, player);
                     }
                 }
             }
@@ -480,14 +474,20 @@ namespace Poker
                     return winner;
                 else
                 {
-                    //suit
-                    return null;
+                    return Suit(winner, player);
                 }
             }
         }
         public static Player StraightFlush(Player winner, Player player)
         {
             return Straight(winner, player);
+        }
+        public static Player Suit(Player winner, Player player)
+        {
+            Card winnerRank = winner.Deck.MaxBy(x => x.Rank);
+            Card playerRank = player.Deck.MaxBy(x => x.Rank);
+
+            return (int)winnerRank.Suit > (int)playerRank.Suit ? winner : player;
         }
     }
 }
