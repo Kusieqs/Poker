@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,8 +18,9 @@ namespace Poker
             switch (TexasHoldem.listOfPlayers[0].LastMove)
             {
                 case Move.AllIn:
+                    Console.Write($"Your move:");
                     Console.ForegroundColor = ConsoleColor.Green;
-                    Console.Write($"Your move: {TexasHoldem.listOfPlayers[0].LastMove}");
+                    Console.WriteLine(TexasHoldem.listOfPlayers[0].LastMove);
                     Console.ResetColor();
                     TexasHoldem.cords = Console.GetCursorPosition();
                     Console.WriteLine("Waiting for the rest of the players . . .");
@@ -60,7 +62,7 @@ namespace Poker
                         do
                         {
 
-                            TexasHoldem.StartReadingKeys(); // Reading key if token is open
+                            StartReadingKeys(); // Reading key if token is open
                             TexasHoldem.keyBuffer = new BlockingCollection<ConsoleKeyInfo>();
                             consoleKeyInfo = TexasHoldem.keyBuffer.Take(token);
 
@@ -276,6 +278,20 @@ namespace Poker
                 }
             }, token);
         } // Computer method to choose Call (Allin) or pass
+        private static void StartReadingKeys()
+        {
+            Task.Run(() =>
+            {
+                while (!TexasHoldem.userToken.Token.IsCancellationRequested)
+                {
+                    if (Console.KeyAvailable)
+                    {
+                        var key = Console.ReadKey(intercept: true);
+                        TexasHoldem.keyBuffer.Add(key);
+                    }
+                }
+            });
+        } // Method for user to enter char
 
     }
 }

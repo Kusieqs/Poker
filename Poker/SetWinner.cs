@@ -21,12 +21,11 @@ namespace Poker
                 if (TexasHoldem.listOfPlayers[i].LastMove == Move.Pass)
                     continue;
 
-                if (i == 0)
+                if (winner == null)
                 {
                     winner = TexasHoldem.listOfPlayers[i];
                     continue;
                 }
-
 
                 if ((int)winner.Hand == (int)TexasHoldem.listOfPlayers[i].Hand)
                 {

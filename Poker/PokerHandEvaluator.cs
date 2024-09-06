@@ -161,7 +161,6 @@ namespace Poker
                     if (card.Rank == tableRank.Rank)
                     {
                         correctTwoPairs++;
-                        break;
                     }
 
                     if (correctTwoPairs == 2)
