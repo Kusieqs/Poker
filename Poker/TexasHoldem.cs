@@ -29,7 +29,12 @@ namespace Poker
             // Engine of game
             EngineOfGame();
 
-            // END
+            // Information about winners/winner
+            List<Player> winners = listOfPlayers.GroupBy(x => x.Monets).MaxBy(x => x.Key).ToList();
+            foreach (Player player in winners)
+            {
+                Console.WriteLine($"{player.Name} won {player.Monets}");
+            }
         } // Main Game
         private static void EngineOfGame()
         {
@@ -38,6 +43,9 @@ namespace Poker
             // Game engine
             do
             {
+                if (listOfPlayers.Where(x => x.Monets > 0).Count() == 1)
+                    break;
+
                 if (logger is FileLogger)
                     FileLogger.CreatingTxtFile();
 
@@ -58,7 +66,7 @@ namespace Poker
 
                     // Exit game
                     if (!IsPlaying)
-                        Environment.Exit(0);
+                        break;
 
                     // Creating deck and shuffle
                     Player.mainDeck.Clear();
@@ -118,7 +126,6 @@ namespace Poker
                 }
                 finally
                 {
-                    listOfPlayers.Where(x => x.LastMove != Move.Pass).First().Monets += bank;
                     bank = 0;
                 }
 
@@ -164,7 +171,6 @@ namespace Poker
                 }
                 else if (choose.KeyChar.ToString() == "2")
                 {
-                    // Exit from table
                     return false;
                 }
 

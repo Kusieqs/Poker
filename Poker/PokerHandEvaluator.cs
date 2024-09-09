@@ -10,7 +10,6 @@ namespace Poker
     {
         public static HandRank CheckHand(Player player)
         {
-
             Card[] checkTable = TexasHoldem.cardsOnTable.ToArray();
 
             if (IsRoyalFlush(player.Deck, checkTable)) return HandRank.RoyalFlush;

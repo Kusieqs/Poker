@@ -73,8 +73,7 @@ namespace Poker
                     winner = TexasHoldem.listOfPlayers[i];
             }
 
-            TexasHoldem.listOfPlayers.Where(x => x.Name != winner.Name).Select(x => x.LastMove = Move.Pass);
-
+            TexasHoldem.listOfPlayers.Where(x => x.Name == winner.Name).First().Monets += TexasHoldem.bank;
             return winner.Name;
         }
         public static Player HighCard(Player winner, Player player)

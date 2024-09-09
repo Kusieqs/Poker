@@ -85,7 +85,11 @@ internal class Program
                         mainMoney = (random.Next(500, 1200)/10) * 10;
                         break;
                 }
-                list.Add(new Player(mainMoney, false, 2, $"Player {i}"));
+
+                if(list.Any(x => x.Name == $"Player {i}"))
+                    list.Add(new Player(mainMoney, false, 2, $"Player{i}"));
+                else
+                    list.Add(new Player(mainMoney, false, 2, $"Player {i}"));
             }
 
             bool loop = true;
