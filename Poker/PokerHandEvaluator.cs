@@ -129,7 +129,7 @@ namespace Poker
 
             return false;
         } 
-        private static (bool, int) IsThreeOfAKind(Card[] hand, Card[] table)
+        public static (bool, int) IsThreeOfAKind(Card[] hand, Card[] table)
         {
 
             if (hand[0].Rank == hand[1].Rank && table.Any(x => x.Rank == hand[0].Rank))
@@ -172,7 +172,7 @@ namespace Poker
             }
             return false;
         }
-        private static (bool, int) IsOnePair(Card[] hand, Card[] table)
+        public static (bool, int) IsOnePair(Card[] hand, Card[] table)
         {
             if (hand[0].Rank == hand[1].Rank)
                 return (true, (int)hand[0].Rank);

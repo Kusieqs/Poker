@@ -404,7 +404,25 @@ namespace Poker
         }
         public static Player FullHouse(Player winner, Player player)
         {
-            return winner;
+            var threeOfKindWinner = PokerHandEvaluator.IsThreeOfAKind(winner.Deck, TexasHoldem.cardsOnTable.ToArray());
+            var threeOfKindPlayer = PokerHandEvaluator.IsThreeOfAKind(player.Deck, TexasHoldem.cardsOnTable.ToArray());
+
+            if (threeOfKindPlayer.Item2 < threeOfKindWinner.Item2)
+                return winner;
+            else if (threeOfKindPlayer.Item2 > threeOfKindWinner.Item2)
+                return player;
+            else
+            {
+                var onePairWinner = PokerHandEvaluator.IsOnePair(winner.Deck, TexasHoldem.cardsOnTable.ToArray());
+                var onePairPlayer = PokerHandEvaluator.IsOnePair(player.Deck, TexasHoldem.cardsOnTable.ToArray());
+
+                if (onePairPlayer.Item2 < onePairWinner.Item2)
+                    return winner;
+                else if (onePairPlayer.Item2 > onePairWinner.Item2)
+                    return player;
+                else
+                    return Suit(winner, player);
+            }
         }
         public static Player FourOfAKind(Player winner, Player player)
         {
