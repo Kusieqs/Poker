@@ -218,7 +218,7 @@ namespace Poker
         } // Feature to choose pass or call for computer 
         public static Move Bluff(int value)
         {
-            if (value >= 7)
+            if (value >= 8)
                 return Move.Call;
             else
                 return Move.Pass;

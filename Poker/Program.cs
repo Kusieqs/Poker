@@ -14,9 +14,8 @@ internal class Program
         List<Player> listOfPlayers = LevelOfGame(players, name);
         Console.Clear();
 
+        // Main Game
         TexasHoldem.Game(listOfPlayers);
-
-        // Koncowa metoda jakas
     }
     private static string NickName()
     {
@@ -43,7 +42,7 @@ internal class Program
             if (int.TryParse(keyInfo.KeyChar.ToString(), out int number) && number >= 1 && number <= 5)
                 return number;
         }
-    } // Choosing how many players do you want in game
+    } // Choosing how many players will play in this game
     private static List<Player> LevelOfGame(int players, string name)
     {
         List<Player> list = new List<Player>();
@@ -70,7 +69,7 @@ internal class Program
                     continue;
             }
 
-            list.Add(new Player(mainMoney, true, 2, name));
+            list.Add(new Player(mainMoney, true, 2, name)); // Adding major player
             Console.Clear();
 
             for(int i = 1; i <= players; i++)
@@ -87,12 +86,18 @@ internal class Program
                         mainMoney = (random.Next(500, 1200)/10) * 10;
                         break;
                 }
-                list.Add(new Player(mainMoney, false, 2, $"Player {i}"));
+
+                // Adding computer player
+                if(list.Any(x => x.Name == $"Player {i}"))
+                    list.Add(new Player(mainMoney, false, 2, $"Player{i}"));
+                else
+                    list.Add(new Player(mainMoney, false, 2, $"Player {i}"));
             }
 
             bool loop = true;
             while (true)
             {
+                // Showing information about players
                 Console.WriteLine("Players:\n\n");
                 for(int j = 0; j < list.Count; j++)
                 {
@@ -105,6 +110,7 @@ internal class Program
                     Console.ResetColor();
                 }
 
+                // Accepting amount of monets
                 Console.Write("\n\nDo you accepting amount of monets?\n\n1. Yes\n2. No\n\nOption: ");
                 consoleKeyInfo = Console.ReadKey(intercept: true);
                 if (consoleKeyInfo.KeyChar == '1')

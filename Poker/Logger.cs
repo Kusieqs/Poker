@@ -19,8 +19,8 @@ namespace Poker
                 Console.WriteLine("\n\n");
             }
             Console.ReadKey();
-        }
-
+        } 
+         
         public void LogHand(string message)
         {
             Console.Clear();

@@ -9,8 +9,8 @@ namespace Poker
 {
     public class Player
     {
-        public static List<Card> mainDeck = new List<Card>();
-        public static Stack<Card> gameDeck = new Stack<Card>();
+        public static List<Card> mainDeck = new List<Card>(); // Main deck
+        public static Stack<Card> gameDeck = new Stack<Card>(); // Stack of cards
 
         public string Name { get; set; }
         public int Monets { get; set; }
@@ -134,9 +134,19 @@ namespace Poker
         } // draw card
         public static void DrawCardOnTable(List<Card> listOfCards, int sleep = 0, bool justShow = false)
         {
-            if(!justShow)
+            if(justShow)
             {
-                var cords = Console.GetCursorPosition();
+                // Drawing cards
+                foreach (Card card in listOfCards)
+                {
+                    card.DrawCard(ConsoleColor.DarkMagenta);
+                }
+            }
+            else
+            {
+                var cords = Console.GetCursorPosition(); // setting cords
+
+                // Showing cards with thread sleep ( depends on how many cards there are on the table )
                 switch (listOfCards.Count)
                 {
                     case 3:
@@ -156,13 +166,6 @@ namespace Poker
 
                 }
                 Console.SetCursorPosition(cords.Left, cords.Top);
-            }
-            else
-            {
-                foreach (Card card in listOfCards)
-                {
-                    card.DrawCard(ConsoleColor.DarkMagenta);
-                }
             }
         } // draw cards on the table
         public static void ShowTable()

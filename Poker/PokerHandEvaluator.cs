@@ -10,72 +10,181 @@ namespace Poker
     {
         public static HandRank CheckHand(Player player)
         {
-            int leng = player.Deck.Length + TexasHoldem.cardsOnTable.Count;
-            Card[] hand = new Card[leng];
+            Card[] checkTable = TexasHoldem.cardsOnTable.ToArray();
 
-            // Adding to  new Tab
-            for(int i = 0; i < leng; i++)
-            {
-                if (i == 0 || i == 1)
-                    hand[i] = player.Deck[i];
-                else
-                    hand[i] = TexasHoldem.cardsOnTable[i-2];
-            }
-
-            if (IsRoyalFlush(hand)) return HandRank.RoyalFlush;
-            if (IsStraightFlush(hand)) return HandRank.StraightFlush;
-            if (IsFourOfAKind(hand)) return HandRank.FourOfAKind;
-            if (IsFullHouse(hand)) return HandRank.FullHouse;
-            if (IsFlush(hand)) return HandRank.Flush;
-            if (IsStraight(hand)) return HandRank.Straight;
-            if (IsThreeOfAKind(hand)) return HandRank.ThreeOfAKind;
-            if (IsTwoPair(hand)) return HandRank.TwoPair;
-            if (IsOnePair(hand)) return HandRank.OnePair;
+            if (IsRoyalFlush(player.Deck, checkTable)) return HandRank.RoyalFlush;
+            if (IsStraightFlush(player.Deck, checkTable)) return HandRank.StraightFlush;
+            if (IsFourOfAKind(player.Deck, checkTable)) return HandRank.FourOfAKind;
+            if (IsFullHouse(player.Deck, checkTable)) return HandRank.FullHouse;
+            if (IsFlush(player.Deck, checkTable)) return HandRank.Flush;
+            if (IsStraight(player.Deck, checkTable)) return HandRank.Straight;
+            if (IsThreeOfAKind(player.Deck, checkTable).Item1) return HandRank.ThreeOfAKind;
+            if (IsTwoPair(player.Deck, checkTable)) return HandRank.TwoPair;
+            if (IsOnePair(player.Deck, checkTable).Item1) return HandRank.OnePair;
             return HandRank.HighCard;
         } // Checking rate of cards
-        private static bool IsRoyalFlush(Card[] hand)
+        private static bool IsRoyalFlush(Card[] hand, Card[] table)
         {
-            return IsStraightFlush(hand) && hand.Min(card => card.Rank) == Rank.Ten;
-        }
-        private static bool IsStraightFlush(Card[] hand)
+            return IsStraightFlush(hand, table) && hand.Min(card => card.Rank) == Rank.Ten;
+        }  // Royal Flush
+        private static bool IsStraightFlush(Card[] hand, Card[] table)
         {
-            return IsFlush(hand) && IsStraight(hand);
-        }
-        private static bool IsFourOfAKind(Card[] hand)
+            return IsFlush(hand, table) && IsStraight(hand, table);
+        }  // Straight Flush
+        private static bool IsFourOfAKind(Card[] hand, Card[] table)
         {
-            return hand.GroupBy(card => card.Rank).Any(group => group.Count() == 4);
-        }
-        private static bool IsFullHouse(Card[] hand)
-        {
-            var rankGroups = hand.GroupBy(card => card.Rank).ToList();
-            return rankGroups.Count == 2 && rankGroups.Any(group => group.Count() == 3);
-        }
-        private static bool IsFlush(Card[] hand)
-        {
-            return hand.GroupBy(card => card.Suit).Count() == 1;
-        }
-        private static bool IsStraight(Card[] hand)
-        {
-            var orderedRanks = hand.Select(card => (int)card.Rank).OrderBy(rank => rank).ToList();
-            for (int i = 1; i < orderedRanks.Count; i++)
+            if (hand[0].Rank == hand[1].Rank && table.Where(x => x.Rank == hand[0].Rank).Count() == 2)
+                return true;
+            else
             {
-                if (orderedRanks[i] != orderedRanks[i - 1] + 1)
-                    return false;
+                int fourCards = 1;
+
+                foreach (var card in hand)
+                {
+                    foreach (var tableRank in table)
+                    {
+                        if (card.Rank == tableRank.Rank)
+                            fourCards++;
+
+                        if (fourCards == 4)
+                            return true;
+                    }
+                    fourCards = 1;
+                }
             }
-            return true;
-        }
-        private static bool IsThreeOfAKind(Card[] hand)
+
+            return false;
+        } // Four of a kind
+        private static bool IsFullHouse(Card[] hand, Card[] table)
         {
-            return hand.GroupBy(card => card.Rank).Any(group => group.Count() == 3);
-        }
-        private static bool IsTwoPair(Card[] hand)
+
+            var threeOfKinds = IsThreeOfAKind(hand, table);
+            var onePairOfKind = IsOnePair(hand, table);
+
+
+            if (threeOfKinds.Item1 && table.Where(x => (int)x.Rank != threeOfKinds.Item2).GroupBy(x => x.Rank).Any(x => x.Count() == 2))
+                return true;
+
+            if (onePairOfKind.Item1 && table.Where(x => (int)x.Rank != onePairOfKind.Item2).GroupBy(x => x.Rank).Any(x => x.Count() == 3))
+                return true;
+
+            if (threeOfKinds.Item1 && onePairOfKind.Item1 && onePairOfKind.Item2 != threeOfKinds.Item2)
+                return true;
+
+            return false;
+        }  // Full house
+        private static bool IsFlush(Card[] hand, Card[] table)
         {
-            var pairs = hand.GroupBy(card => card.Rank).Where(group => group.Count() == 2).ToList();
-            return pairs.Count == 2;
-        }
-        private static bool IsOnePair(Card[] hand)
+            Dictionary<Suit,int> keyValuePairs = new Dictionary<Suit,int>();
+            foreach(var card in hand)
+            {
+                if (!keyValuePairs.ContainsKey(card.Suit))
+                    keyValuePairs.Add(card.Suit, 1);
+                else
+                    keyValuePairs[card.Suit] += 1;
+            }
+
+            foreach(var tablecard in table)
+            {
+                if (keyValuePairs.ContainsKey(tablecard.Suit))
+                    keyValuePairs[tablecard.Suit] += 1;
+            }
+
+            if (keyValuePairs.Any(x => x.Value >= 5))
+                return true;
+
+            return false;
+        } // Flush
+        private static bool IsStraight(Card[] hand, Card[] table)
         {
-            return hand.GroupBy(card => card.Rank).Any(group => group.Count() == 2);
-        }
+            List<(string, Card)> list = new List<(string, Card)> ();
+
+            foreach(var card in hand)
+            {
+                list.Add(("Person", card));
+            }
+
+            foreach(var tablecard in table)
+            {
+                list.Add(("Table", tablecard));
+            }
+
+            list.OrderBy(x => x.Item2.Rank);
+            list.Distinct();
+
+            int rankOfLastCard = 0;
+            List<(string, Card)> copyList = new List<(string, Card)>();
+            foreach(var card in list)
+            {
+                if ((int)card.Item2.Rank + 1 != rankOfLastCard)
+                    copyList.Clear();
+
+                copyList.Add(card);
+                rankOfLastCard = (int)card.Item2.Rank;
+            }
+
+            if (copyList.Count >= 5 && copyList.Any(x => x.Item1 == "Person"))
+                return true;
+
+            return false;
+        }  // Straight
+        public static (bool, int) IsThreeOfAKind(Card[] hand, Card[] table)
+        {
+
+            if (hand[0].Rank == hand[1].Rank && table.Any(x => x.Rank == hand[0].Rank))
+                return (true, (int)hand[0].Rank);
+            else
+            {
+                int threeCards = 1;
+
+                foreach (var card in hand)
+                {
+                    foreach (var tableRank in table)
+                    {
+                        if (card.Rank == tableRank.Rank)
+                            threeCards++;
+
+                        if (threeCards == 3)
+                            return (true, (int)card.Rank);
+                    }
+                    threeCards = 1;
+                }
+            }
+            return (false, 0);
+        } // Three of a kind
+        private static bool IsTwoPair(Card[] hand, Card[] table)
+        {
+            int correctTwoPairs = 0;
+
+            foreach (var card in hand)
+            {
+                foreach (var tableRank in table)
+                {
+                    if (card.Rank == tableRank.Rank)
+                    {
+                        correctTwoPairs++;
+                    }
+
+                    if (correctTwoPairs == 2)
+                        return true;
+                }
+            }
+            return false;
+        } // Two pair
+        public static (bool, int) IsOnePair(Card[] hand, Card[] table)
+        {
+            if (hand[0].Rank == hand[1].Rank)
+                return (true, (int)hand[0].Rank);
+
+            foreach (var card in hand)
+            {
+                foreach(var tableRank in table)
+                {
+                    if(card.Rank == tableRank.Rank)
+                        return (true, (int)card.Rank);
+                }
+            }
+            return (false, 0);
+        } // One pair
     }
 }
