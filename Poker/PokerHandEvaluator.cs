@@ -26,11 +26,11 @@ namespace Poker
         private static bool IsRoyalFlush(Card[] hand, Card[] table)
         {
             return IsStraightFlush(hand, table) && hand.Min(card => card.Rank) == Rank.Ten;
-        } 
+        }  // Royal Flush
         private static bool IsStraightFlush(Card[] hand, Card[] table)
         {
             return IsFlush(hand, table) && IsStraight(hand, table);
-        } 
+        }  // Straight Flush
         private static bool IsFourOfAKind(Card[] hand, Card[] table)
         {
             if (hand[0].Rank == hand[1].Rank && table.Where(x => x.Rank == hand[0].Rank).Count() == 2)
@@ -54,7 +54,7 @@ namespace Poker
             }
 
             return false;
-        }
+        } // Four of a kind
         private static bool IsFullHouse(Card[] hand, Card[] table)
         {
 
@@ -72,7 +72,7 @@ namespace Poker
                 return true;
 
             return false;
-        } 
+        }  // Full house
         private static bool IsFlush(Card[] hand, Card[] table)
         {
             Dictionary<Suit,int> keyValuePairs = new Dictionary<Suit,int>();
@@ -94,7 +94,7 @@ namespace Poker
                 return true;
 
             return false;
-        }
+        } // Flush
         private static bool IsStraight(Card[] hand, Card[] table)
         {
             List<(string, Card)> list = new List<(string, Card)> ();
@@ -127,7 +127,7 @@ namespace Poker
                 return true;
 
             return false;
-        } 
+        }  // Straight
         public static (bool, int) IsThreeOfAKind(Card[] hand, Card[] table)
         {
 
@@ -151,7 +151,7 @@ namespace Poker
                 }
             }
             return (false, 0);
-        }
+        } // Three of a kind
         private static bool IsTwoPair(Card[] hand, Card[] table)
         {
             int correctTwoPairs = 0;
@@ -170,7 +170,7 @@ namespace Poker
                 }
             }
             return false;
-        }
+        } // Two pair
         public static (bool, int) IsOnePair(Card[] hand, Card[] table)
         {
             if (hand[0].Rank == hand[1].Rank)
@@ -185,6 +185,6 @@ namespace Poker
                 }
             }
             return (false, 0);
-        }
+        } // One pair
     }
 }

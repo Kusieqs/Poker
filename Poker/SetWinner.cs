@@ -18,6 +18,7 @@ namespace Poker
 
             for (int i = 0; i < TexasHoldem.listOfPlayers.Count; i++)
             {
+                // Continue if someone pass
                 if (TexasHoldem.listOfPlayers[i].LastMove == Move.Pass)
                     continue;
 
@@ -27,6 +28,7 @@ namespace Poker
                     continue;
                 }
 
+                // setting hand for player
                 if ((int)winner.Hand == (int)TexasHoldem.listOfPlayers[i].Hand)
                 {
                     switch(winner.Hand)
@@ -62,20 +64,15 @@ namespace Poker
                             // Lack of probability
                             break;
                     }
-
-                    int winnerHand = (int)winner.Deck[0].Rank + (int)winner.Deck[1].Rank;
-                    int otherHand = (int)TexasHoldem.listOfPlayers[i].Deck[0].Rank + (int)TexasHoldem.listOfPlayers[i].Deck[1].Rank;
-
-                    if (winnerHand < otherHand)
-                        winner = TexasHoldem.listOfPlayers[i];
                 }
                 else if ((int)winner.Hand < (int)TexasHoldem.listOfPlayers[i].Hand)
                     winner = TexasHoldem.listOfPlayers[i];
             }
 
+            // Adding monets to the winner
             TexasHoldem.listOfPlayers.Where(x => x.Name == winner.Name).First().Monets += TexasHoldem.bank;
             return winner.Name;
-        }
+        } // Choosing winner by hand
         public static Player HighCard(Player winner, Player player)
         {
             int winnerDeck = (int)winner.Deck.Max(x => x.Rank);
@@ -99,7 +96,7 @@ namespace Poker
                     return Suit(winner, player);
                 }
             }
-        }
+        } // High Card Chooser
         public static Player OnePair(Player winner, Player player)
         {
 
@@ -165,7 +162,7 @@ namespace Poker
                     return Suit(winner, player);
                 }
             }
-        }
+        } // One pair Chooser
         public static Player TwoPair(Player winner, Player player)
         {
             int winnerRank = (int)winner.Deck.Max(x => x.Rank);
@@ -189,7 +186,7 @@ namespace Poker
                     return Suit(winner,player);
                 }
             }
-        }
+        } // Two pair Chooser
         public static Player ThreeOfAKind(Player winner, Player player)
         {
             int winnerRank = 0;
@@ -263,7 +260,7 @@ namespace Poker
                     return Suit(winner, player);
                 }
             }
-        }
+        } // Three of a kind chooser
         public static Player Straight(Player winner, Player player)
         {
             List<(string, Card)> listWinner = new List<(string, Card)>();
@@ -337,7 +334,7 @@ namespace Poker
                     }
                 }
             }
-        }
+        } // Straight chooser
         public static Player Flush(Player winner, Player player)
         {
             Dictionary<Suit, int> winnerKeyValuePairs = new Dictionary<Suit, int>();
@@ -400,7 +397,7 @@ namespace Poker
                     }
                 }
             }
-        }
+        } // Flush chooser
         public static Player FullHouse(Player winner, Player player)
         {
             var threeOfKindWinner = PokerHandEvaluator.IsThreeOfAKind(winner.Deck, TexasHoldem.cardsOnTable.ToArray());
@@ -422,7 +419,7 @@ namespace Poker
                 else
                     return Suit(winner, player);
             }
-        }
+        } // Full house chooser
         public static Player FourOfAKind(Player winner, Player player)
         {
             int winnerRank = 0;
@@ -493,17 +490,17 @@ namespace Poker
                     return Suit(winner, player);
                 }
             }
-        }
+        } // Four of a kind chooser
         public static Player StraightFlush(Player winner, Player player)
         {
             return Straight(winner, player);
-        }
+        } // Straight flush chooser
         public static Player Suit(Player winner, Player player)
         {
             Card winnerRank = winner.Deck.MaxBy(x => x.Rank);
             Card playerRank = player.Deck.MaxBy(x => x.Rank);
 
             return (int)winnerRank.Suit > (int)playerRank.Suit ? winner : player;
-        }
+        } // Suit chooser
     }
 }

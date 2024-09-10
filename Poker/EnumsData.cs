@@ -1,5 +1,6 @@
 ﻿namespace Poker
 {
+    // Suit of card
     public enum Suit
     {
         Heart,
@@ -7,6 +8,8 @@
         Club,
         Spade
     }
+
+    // Rank of card
     public enum Rank
     {
         Two = 2,
@@ -23,6 +26,8 @@
         King,
         Ace
     }
+
+    // HandRank
     public enum HandRank
     {
         HighCard = 1,
@@ -36,6 +41,8 @@
         StraightFlush,
         RoyalFlush
     }
+
+    // Move
     public enum Move
     {
         Raise = 1,

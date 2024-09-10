@@ -15,6 +15,7 @@ namespace Poker
             TexasHoldem.userToken = new CancellationTokenSource(); // Special token to delete user method
             TexasHoldem.computerToken = new CancellationTokenSource();  // Special token to delete Computer method
 
+            // Last move chooser
             switch (TexasHoldem.listOfPlayers[0].LastMove)
             {
                 case Move.AllIn:
@@ -42,11 +43,12 @@ namespace Poker
         } // Setting new tokens and active async methods
         private static Task GetUserMoveAsync()
         {
-            CancellationToken token = TexasHoldem.userToken.Token;
+            CancellationToken token = TexasHoldem.userToken.Token; // Creating special token
             return Task.Run(() =>
             {
                 while (true)
                 {
+                    // All in writer
                     if (TexasHoldem.listOfPlayers[0].LastMove == Move.AllIn)
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
@@ -111,17 +113,18 @@ namespace Poker
         } // User Async method to choose move
         private static Task GetComputerMoveAsync(Dictionary<Player, (int, int)> cursor, int lvl = 0, int amount = 0)
         {
-            CancellationToken token = TexasHoldem.computerToken.Token;
+            CancellationToken token = TexasHoldem.computerToken.Token; // Creating special token
             return Task.Run(async () =>
             {
                 try
                 {
                     Dictionary<Player, bool> activePlayers = TexasHoldem.ActivePlayersToDictionary(); // Setting active players and cords for them
-                    var cords = Console.GetCursorPosition();
+                    var cords = Console.GetCursorPosition(); // Setting cords
                     Random random = new Random();
 
                     foreach (var dict in activePlayers)
                     {
+                        // Allin writer
                         if (dict.Key.LastMove == Move.AllIn)
                         {
                             Console.SetCursorPosition(cursor[dict.Key].Item1, cursor[dict.Key].Item2);
@@ -153,12 +156,14 @@ namespace Poker
                             }
                         }
 
+                        // Move for computer
                         string move = TexasHoldem.listOfPlayers.Where(x => x.Name == name).First().ChooseMoveForComputer(lvl);
                         Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
                         Console.ForegroundColor = ConsoleColor.DarkGreen;
                         Console.Write($"{move}");
                         Console.ResetColor();
 
+                        // Cancel token if someone took raise
                         if (Enum.Parse<Move>(move) == Move.Raise)
                         {
                             TexasHoldem.firstRaise = true;
@@ -168,6 +173,7 @@ namespace Poker
                         else if (Move.Pass == Enum.Parse<Move>(move) && TexasHoldem.listOfPlayers.Where(x => x.LastMove != Move.Pass).Count() == 1)
                             throw new OnePlayerException();
 
+                        // Setting cursor
                         if (!TexasHoldem.chooseOption)
                             Console.SetCursorPosition(cords.Item1, cords.Item2);
                     }
@@ -185,18 +191,19 @@ namespace Poker
         } // Computer Async method to choose move
         public static Task PlayerCallOrPass(int amount)
         {
-            CancellationToken token = TexasHoldem.userToken.Token;
+            CancellationToken token = TexasHoldem.userToken.Token; // Special token creator
             return Task.Run(() =>
             {
-                do
+                try
                 {
-                    try
+                    do
                     {
                         ConsoleKeyInfo key = Console.ReadKey(intercept: true);
 
+                        // Choosing option
                         if (int.TryParse(key.KeyChar.ToString(), out int result) && result <= 2 && result >= 1)
                         {
-
+                            // call or pass move
                             if (result == 1)
                             {
                                 TexasHoldem.listOfPlayers[0].LastMove = Move.Call;
@@ -210,24 +217,25 @@ namespace Poker
                             Console.ResetColor();
                             break;
                         }
-                    }
-                    catch (OnePlayerException)
-                    {
-                        TexasHoldem.computerToken?.Cancel();
-                        return;
-                    }
-                } while (true);
+                    } while (true);
+                }
+                catch (OnePlayerException)
+                {
+                    TexasHoldem.computerToken?.Cancel();
+                    return;
+                }
             }, token);
         } // User method to choose Call (Allin) or pass
         public static Task ComputerCallOrPass((int, int) cords, Dictionary<Player, (int, int)> cursor, int amount)
         {
-            CancellationToken token = TexasHoldem.computerToken.Token;
+            CancellationToken token = TexasHoldem.computerToken.Token; // Special token creator
             return Task.Run(async () =>
             {
                 try
                 {
                     Dictionary<Player, bool> activePlayers = new Dictionary<Player, bool>();
 
+                    // Adding players to dicitionary
                     for (int i = 1; i < TexasHoldem.listOfPlayers.Count; i++)
                     {
                         if (TexasHoldem.listOfPlayers[i].LastMove != Move.Raise && TexasHoldem.listOfPlayers[i].LastMove != Move.Pass)
@@ -255,14 +263,17 @@ namespace Poker
                         }
                         await Task.Delay(random.Next(1000, 5000));
 
+                        // choosing call or pass
                         Move callOrPass = TexasHoldem.listOfPlayers.Where(x => x.Name == name).First().CallOrPass(amount, player.Monets);
                         string move = callOrPass.ToString();
 
+                        // Raising money or pass
                         if (callOrPass == Move.Call)
                             TexasHoldem.listOfPlayers.Where(x => x.Name == name).First().RaiseMoney(amount);
                         else
                             TexasHoldem.listOfPlayers.Where(x => x.Name == name).First().LastMove = Move.Pass;
 
+                        // Writing move to console
                         Console.SetCursorPosition(cursor[player].Item1, cursor[player].Item2);
                         Console.ForegroundColor = ConsoleColor.DarkGreen;
                         Console.Write($"{move}");
